@@ -40,6 +40,7 @@ The case study now has three layers of validation:
 | Source data | seed counts, duplicate keys, FK sanity, inventory sanity | `sql/validation/postgres_retail_seed_checks.sql` |
 | Streaming | generator topics, CDC topics, sample records, schema subjects | `sql/validation/kafka_topic_inventory.md` |
 | Analytics | retail profile, realtime sales, lakehouse quality examples | `sql/examples/` |
+| Runtime contract | Compose env names, generator config, DAG topics, Debezium/Postgres CDC tables, ClickHouse sink tables | `scripts/validate_runtime_contract.py` |
 
 ## Acceptance Criteria
 
@@ -53,5 +54,4 @@ The case study now has three layers of validation:
 1. Run the full stack and capture screenshots/logs under `docs/assets/`.
 2. Add Kafka-to-ClickHouse ingestion jobs for `orders.v1`, `payments.v1`, and `inventory-changes.v1`.
 3. Add Kafka-to-lakehouse ingestion jobs for raw bronze events.
-4. Add CI smoke checks for SQL files and documentation links.
-5. Promote the repo from `lab` to `applied case study` only after run evidence is committed.
+4. Promote the repo from `lab` to `applied case study` only after run evidence is committed.

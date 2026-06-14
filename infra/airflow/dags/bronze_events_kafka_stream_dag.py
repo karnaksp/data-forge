@@ -103,6 +103,18 @@ CDC_STREAMS = [
         "table": "iceberg.bronze.demo_public_customer_segments",
         "checkpoint": "s3a://checkpoints/spark/iceberg/bronze/cdc/demo_public_customer_segments",
     },
+    {
+        "name": "product_suppliers",
+        "topic": "demo.public.product_suppliers",
+        "table": "iceberg.bronze.demo_public_product_suppliers",
+        "checkpoint": "s3a://checkpoints/spark/iceberg/bronze/cdc/demo_public_product_suppliers",
+    },
+    {
+        "name": "warehouses",
+        "topic": "demo.public.warehouses",
+        "table": "iceberg.bronze.demo_public_warehouses",
+        "checkpoint": "s3a://checkpoints/spark/iceberg/bronze/cdc/demo_public_warehouses",
+    },
 ]
 
 DEFAULT_PARAMS = {
