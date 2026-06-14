@@ -2,7 +2,7 @@
 
 Your modern data stack playground. Spin up core components of a real data platform and practice end‑to‑end workflows locally.
 
-> Portfolio note: this repository is currently a fork used as a Data Engineering lab. See [CASE_STUDY.md](CASE_STUDY.md) for the planned applied retail CDC/lakehouse scenario and the explicit contribution checklist.
+> Portfolio note: this repository is a fork used as a Data Engineering lab. I am converting it into an applied retail CDC/lakehouse case study with a reproducible runbook, validation SQL, and explicit contribution notes. See [CASE_STUDY.md](CASE_STUDY.md).
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Docker](https://img.shields.io/badge/Docker-20.10+-blue.svg)](https://www.docker.com/)
@@ -57,7 +57,7 @@ Data Forge includes a complete modern data stack with industry-standard tools:
 ### 1. Clone & Configure
 
 ```bash
-git clone https://github.com/fortiql/data-forge.git
+git clone https://github.com/karnaksp/data-forge.git
 cd data-forge
 
 # Copy environment template
@@ -95,7 +95,7 @@ docker compose --profile datagen up -d
 | Service | URL | Default Login |
 |---------|-----|---------------|
 |**Kafka UI**|http://localhost:8082 |No auth|
-| **Airflow** | http://localhost:8085 | `airlfow` / `airflow` |
+| **Airflow** | http://localhost:8085 | `airflow` / `airflow` |
 | **Superset** | http://localhost:8089 | `admin` / `admin` |
 | **MinIO Console** | http://localhost:9001 | `minio` / `minio123` |
 | **Trino** | http://localhost:8080 | No auth |
@@ -105,6 +105,23 @@ docker compose --profile datagen up -d
 ## 🧩 Architecture Profiles
 
 See [docs/architecture.md](docs/architecture.md) for profile details and commands.
+
+## 🧪 Portfolio Case Study
+
+The applied scenario is **retail CDC to lakehouse and realtime analytics**:
+
+- source tables: `users`, `products`, `warehouses`, `suppliers`, `inventory`, `warehouse_inventory`, `customer_segments`, `product_suppliers`;
+- business-event topics: `orders.v1`, `payments.v1`, `shipments.v1`, `inventory-changes.v1`, `customer-interactions.v1`;
+- CDC topics: `demo.public.*` from Postgres through Debezium;
+- validation: source counts, duplicate keys, referential integrity, Kafka topic inventory, and analytical query examples.
+
+Start here:
+
+- [CASE_STUDY.md](CASE_STUDY.md) - fork scope, contribution notes, and acceptance criteria.
+- [docs/retail-cdc-runbook.md](docs/retail-cdc-runbook.md) - reproducible local scenario.
+- [sql/validation/postgres_retail_seed_checks.sql](sql/validation/postgres_retail_seed_checks.sql) - source-system data quality checks.
+- [sql/validation/kafka_topic_inventory.md](sql/validation/kafka_topic_inventory.md) - streaming validation checklist.
+- [sql/examples/](sql/examples/) - Postgres, ClickHouse, and Trino example queries.
 
 ---
 

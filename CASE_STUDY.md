@@ -2,7 +2,7 @@
 
 ## Status
 
-This repository is a fork used as a portfolio lab for modern Data Engineering workflows. The base stack comes from the upstream project; this fork is intended to become a reproducible applied case study with explicit contribution notes, validation queries, and run evidence.
+This repository is a fork used as a portfolio lab for modern Data Engineering workflows. The base stack comes from the upstream project; this fork is being converted into a reproducible applied case study with explicit contribution notes, validation queries, and run evidence.
 
 ## Target Scenario
 
@@ -22,25 +22,36 @@ flowchart LR
     G --> H
 ```
 
-## Planned My Contribution
+## My Contribution in This Fork
 
-- Document a reproducible end-to-end retail CDC runbook.
-- Add validation queries for row counts, duplicate keys, schema drift, and CDC replay sanity.
-- Add sample Trino and ClickHouse queries with expected results.
-- Capture screenshots or logs proving that the local stack ran successfully.
-- Keep the README honest about fork origin and scope of changes.
+- Added a retail CDC/lakehouse runbook: [docs/retail-cdc-runbook.md](docs/retail-cdc-runbook.md).
+- Added source-system validation SQL: [sql/validation/postgres_retail_seed_checks.sql](sql/validation/postgres_retail_seed_checks.sql).
+- Added Kafka validation checklist: [sql/validation/kafka_topic_inventory.md](sql/validation/kafka_topic_inventory.md).
+- Added analytical example queries for Postgres, ClickHouse, and Trino under [sql/examples/](sql/examples/).
+- Added an evidence capture contract under [docs/assets/](docs/assets/).
+- Kept the README honest about fork origin and current limitations.
+
+## Validation Contract
+
+The case study now has three layers of validation:
+
+| Layer | Evidence | File |
+| --- | --- | --- |
+| Source data | seed counts, duplicate keys, FK sanity, inventory sanity | `sql/validation/postgres_retail_seed_checks.sql` |
+| Streaming | generator topics, CDC topics, sample records, schema subjects | `sql/validation/kafka_topic_inventory.md` |
+| Analytics | retail profile, realtime sales, lakehouse quality examples | `sql/examples/` |
 
 ## Acceptance Criteria
 
-- A reviewer can run one local scenario with Docker Compose.
+- A reviewer can run one local scenario with Docker Compose using `docs/retail-cdc-runbook.md`.
 - The case study explains what changed in this fork versus upstream.
-- The repo includes evidence of ingestion, transformation, analytical query output, and data quality checks.
-- The project is presented as a learning lab unless/until the fork has substantial original code.
+- The repo includes validation SQL/checklists for ingestion, analytical query output, and data quality checks.
+- The project is presented as a learning lab until captured run evidence and original ingestion jobs are added.
 
 ## Next Backlog
 
-1. Add a `docs/retail-cdc-runbook.md` with exact commands and expected service URLs.
-2. Add `sql/validation/` queries for bronze row counts and CDC operation coverage.
-3. Add `sql/examples/` queries for Trino and ClickHouse.
-4. Add screenshots under `docs/assets/` after browser verification.
-5. Add a concise `My contribution` section to the root README after the first full run.
+1. Run the full stack and capture screenshots/logs under `docs/assets/`.
+2. Add Kafka-to-ClickHouse ingestion jobs for `orders.v1`, `payments.v1`, and `inventory-changes.v1`.
+3. Add Kafka-to-lakehouse ingestion jobs for raw bronze events.
+4. Add CI smoke checks for SQL files and documentation links.
+5. Promote the repo from `lab` to `applied case study` only after run evidence is committed.
