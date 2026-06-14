@@ -141,6 +141,12 @@ Use the SQL examples after the corresponding sinks or query engines are wired:
 
 The ClickHouse example is wired through Kafka Engine source tables and materialized views in `infra/clickhouse/init/002_kafka_event_ingestion.sql`. Use `sql/validation/clickhouse_ingestion_contract.md` for the short runtime smoke commands. The Trino example remains a target-state lakehouse query until the raw Bronze ingestion evidence is finalized.
 
+For a diffable ClickHouse live evidence capture, run:
+
+```bash
+python scripts/capture_clickhouse_evidence.py --duration 60 --cleanup
+```
+
 ### 7. Review Static Evidence
 
 Generate and inspect the Docker-free evidence bundle:

@@ -20,34 +20,50 @@ python scripts/validate_project.py
 
 ## Runtime Smoke
 
-Start the minimal services needed for ClickHouse ingestion review:
+Use the capture script to start only the services needed for ClickHouse ingestion review, wait briefly for generator events, and write diffable evidence files under `docs/assets/`:
 
 ```bash
-docker compose --profile core up -d postgres kafka schema-registry clickhouse
-docker compose --profile datagen up -d data-generator
+python scripts/capture_clickhouse_evidence.py --duration 60 --cleanup
+```
+
+The script applies `docker-compose.evidence.yml` on top of the default compose file. The override removes host port bindings so the smoke run can execute on developer machines where Postgres, Kafka, Schema Registry, or ClickHouse ports are already occupied.
+
+The script writes:
+
+- `docs/assets/clickhouse-show-tables.txt`
+- `docs/assets/clickhouse-orders-count.txt`
+- `docs/assets/clickhouse-payments-count.txt`
+- `docs/assets/clickhouse-inventory-count.txt`
+- `docs/assets/clickhouse-ingestion-log.txt`
+
+Manual equivalent:
+
+```bash
+docker compose --env-file .env.example -f docker-compose.yml -f docker-compose.evidence.yml --profile core up -d postgres kafka schema-registry clickhouse
+docker compose --env-file .env.example -f docker-compose.yml -f docker-compose.evidence.yml --profile datagen up -d data-generator
 ```
 
 Inspect the ClickHouse tables:
 
 ```bash
-docker compose exec clickhouse clickhouse-client --query "SHOW TABLES FROM analytics"
+docker compose --env-file .env.example -f docker-compose.yml -f docker-compose.evidence.yml exec clickhouse clickhouse-client --query "SHOW TABLES FROM analytics"
 ```
 
 Check that rows arrive after the generator has produced events:
 
 ```bash
-docker compose exec clickhouse clickhouse-client --query "SELECT count() FROM analytics.orders"
-docker compose exec clickhouse clickhouse-client --query "SELECT count() FROM analytics.payments"
-docker compose exec clickhouse clickhouse-client --query "SELECT count() FROM analytics.inventory_changes"
+docker compose --env-file .env.example -f docker-compose.yml -f docker-compose.evidence.yml exec clickhouse clickhouse-client --query "SELECT count() FROM analytics.orders"
+docker compose --env-file .env.example -f docker-compose.yml -f docker-compose.evidence.yml exec clickhouse clickhouse-client --query "SELECT count() FROM analytics.payments"
+docker compose --env-file .env.example -f docker-compose.yml -f docker-compose.evidence.yml exec clickhouse clickhouse-client --query "SELECT count() FROM analytics.inventory_changes"
 ```
 
 Run the example analytical queries:
 
 ```bash
-docker compose exec -T clickhouse clickhouse-client --multiquery < sql/examples/clickhouse_realtime_sales.sql
+docker compose --env-file .env.example -f docker-compose.yml -f docker-compose.evidence.yml exec -T clickhouse clickhouse-client --multiquery < sql/examples/clickhouse_realtime_sales.sql
 ```
 
-## Evidence to Capture Later
+## Evidence to Capture
 
 Prefer text logs for PR review because they are diffable and easy to search:
 
@@ -57,4 +73,4 @@ Prefer text logs for PR review because they are diffable and easy to search:
 - `docs/assets/clickhouse-inventory-count.txt`
 - `docs/assets/clickhouse-ingestion-log.txt`
 
-Static validation proves the wiring is present and aligned with repository contracts. Runtime proof still requires a short local run that shows non-zero row counts after events are produced.
+Static validation proves the wiring is present and aligned with repository contracts. Runtime proof requires a short local run that shows row-count files after events are produced.

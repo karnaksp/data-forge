@@ -142,6 +142,7 @@ Portfolio quality checks:
 ```bash
 python scripts/validate_project.py
 docker compose --env-file .env.example config --quiet
+docker compose --env-file .env.example -f docker-compose.yml -f docker-compose.evidence.yml config --quiet
 ```
 
 ---

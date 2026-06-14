@@ -71,11 +71,20 @@ def render_evidence_bundle() -> str:
         ("Project quality gate", "`python scripts/validate_project.py`"),
         ("Compose config", "`docker compose --env-file .env.example config --quiet`"),
         (
+            "Evidence compose config",
+            "`docker compose --env-file .env.example -f docker-compose.yml -f docker-compose.evidence.yml config --quiet`",
+        ),
+        (
             "Postgres checks",
             "`docker compose exec -T postgres psql -U admin -d demo < sql/validation/postgres_retail_seed_checks.sql`",
         ),
         ("Kafka checks", "`sql/validation/kafka_topic_inventory.md`"),
         ("ClickHouse ingestion checks", "`sql/validation/clickhouse_ingestion_contract.md`"),
+        (
+            "ClickHouse live evidence",
+            "`python scripts/capture_clickhouse_evidence.py --duration 60 --cleanup` "
+            "(uses `docker-compose.evidence.yml` without host port bindings)",
+        ),
     ]
     clickhouse_rows = [
         (
@@ -149,7 +158,7 @@ Tables referenced by the realtime analytics SQL example:
 - Kafka UI topic screenshot after `core` and `datagen` profiles are running.
 - Data generator logs showing seed counts and event rate.
 - Postgres validation output from `sql/validation/postgres_retail_seed_checks.sql`.
-- ClickHouse query output after generator events are produced.
+- ClickHouse query output after generator events are produced; use `python scripts/capture_clickhouse_evidence.py --duration 60 --cleanup` to write diffable text evidence under `docs/assets/` with the host-port-free evidence compose override.
 - Trino query output after lakehouse ingestion jobs are finalized.
 """
     if runtime_failures:

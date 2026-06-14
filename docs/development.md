@@ -22,6 +22,7 @@ Why: Set up, extend, and debug the stack efficiently.
   - `python scripts/validate_runtime_contract.py`
   - `python scripts/validate_project.py`
   - `docker compose --env-file .env.example config --quiet`
+  - `docker compose --env-file .env.example -f docker-compose.yml -f docker-compose.evidence.yml config --quiet`
 
 - Environment variables (common):
   - `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`

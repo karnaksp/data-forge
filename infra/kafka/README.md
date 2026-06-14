@@ -19,6 +19,6 @@ Why: Event streaming backbone for real‑time data flows.
 
 ## 📝 Notes
 
-- Listener settings come from `.env` (advertised listeners, controller quorum).
-- Data stored in `kafka-data` volume.
-
+- The image is pinned to `apache/kafka:4.1.2`; avoid floating `latest` tags so local smoke runs do not break when upstream tags move.
+- Listener settings come from `.env` (advertised listeners, listener protocol map, controller quorum).
+- Data stored in the `kafka-data` volume mounted at `/tmp/kraft-combined-logs`.

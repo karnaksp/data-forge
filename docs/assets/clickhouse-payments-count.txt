@@ -1,0 +1,4 @@
+generated_at=2026-06-14T17:37:28.440413+00:00
+command=SELECT count() AS payments FROM analytics.payments
+
+362
