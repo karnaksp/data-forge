@@ -1,0 +1,42 @@
+generated_at=2026-06-14T17:37:28.440413+00:00
+duration_seconds=60
+command=docker compose --env-file .env.example -f docker-compose.yml -f docker-compose.evidence.yml logs --no-color --tail 200 data-generator
+
+data-generator-1  | [fakegen] waiting for Postgres…
+data-generator-1  | 🌱 Seeding Postgres reference data...
+data-generator-1  | ✅ Seeded: 500 users, 200 products, 5 warehouses, 20 suppliers
+data-generator-1  | [fakegen] waiting for Schema Registry…
+data-generator-1  | [fakegen] target EPS=40.0 (orders=0.35, interactions=0.45, invchg=0.2)
+data-generator-1  | 
+data-generator-1  | 🛑 Shutdown signal received – cleaning up playground…
+data-generator-1  | 🧹 Postgres tables truncated
+data-generator-1  | 🧹 Deleting Kafka topics...
+data-generator-1  |   ✨ Deleted topic orders.v1
+data-generator-1  |   ✨ Deleted topic payments.v1
+data-generator-1  |   ✨ Deleted topic shipments.v1
+data-generator-1  |   ✨ Deleted topic inventory-changes.v1
+data-generator-1  |   ✨ Deleted topic customer-interactions.v1
+data-generator-1  |   ⚠️ Delete failed for demo.public.users: KafkaError{code=UNKNOWN_TOPIC_OR_PART,val=3,str="Broker: Unknown topic or partition"}
+data-generator-1  |   ⚠️ Delete failed for demo.public.products: KafkaError{code=UNKNOWN_TOPIC_OR_PART,val=3,str="Broker: Unknown topic or partition"}
+data-generator-1  |   ⚠️ Delete failed for demo.public.inventory: KafkaError{code=UNKNOWN_TOPIC_OR_PART,val=3,str="Broker: Unknown topic or partition"}
+data-generator-1  |   ⚠️ Delete failed for demo.public.warehouse_inventory: KafkaError{code=UNKNOWN_TOPIC_OR_PART,val=3,str="Broker: Unknown topic or partition"}
+data-generator-1  |   ⚠️ Delete failed for demo.public.suppliers: KafkaError{code=UNKNOWN_TOPIC_OR_PART,val=3,str="Broker: Unknown topic or partition"}
+data-generator-1  |   ⚠️ Delete failed for demo.public.customer_segments: KafkaError{code=UNKNOWN_TOPIC_OR_PART,val=3,str="Broker: Unknown topic or partition"}
+data-generator-1  |   ⚠️ Delete failed for demo.public.product_suppliers: KafkaError{code=UNKNOWN_TOPIC_OR_PART,val=3,str="Broker: Unknown topic or partition"}
+data-generator-1  |   ⚠️ Delete failed for demo.public.warehouses: KafkaError{code=UNKNOWN_TOPIC_OR_PART,val=3,str="Broker: Unknown topic or partition"}
+data-generator-1  | 📝 Re-creating topics...
+data-generator-1  |   ✅ Re-created topic orders.v1
+data-generator-1  |   ✅ Re-created topic payments.v1
+data-generator-1  |   ✅ Re-created topic shipments.v1
+data-generator-1  |   ✅ Re-created topic inventory-changes.v1
+data-generator-1  |   ✅ Re-created topic customer-interactions.v1
+data-generator-1  |   ✅ Re-created topic demo.public.users
+data-generator-1  |   ✅ Re-created topic demo.public.products
+data-generator-1  |   ✅ Re-created topic demo.public.inventory
+data-generator-1  |   ✅ Re-created topic demo.public.warehouse_inventory
+data-generator-1  |   ✅ Re-created topic demo.public.suppliers
+data-generator-1  |   ✅ Re-created topic demo.public.customer_segments
+data-generator-1  |   ✅ Re-created topic demo.public.product_suppliers
+data-generator-1  |   ✅ Re-created topic demo.public.warehouses
+data-generator-1  | 🧹 Clearing checkpoint prefix s3a://checkpoints/spark/iceberg/bronze/raw_events/
+

@@ -15,7 +15,9 @@ jobs:
           python-version: "3.11"
       - name: Validate portfolio case-study files
         run: |
+          python -m py_compile scripts/capture_clickhouse_evidence.py
           python scripts/validate_project.py
       - name: Validate Docker Compose config
         run: |
           docker compose --env-file .env.example config --quiet
+          docker compose --env-file .env.example -f docker-compose.yml -f docker-compose.evidence.yml config --quiet

@@ -1,7 +1,7 @@
-FROM confluentinc/cp-schema-registry:latest
+FROM confluentinc/cp-schema-registry:8.1.0
 
 USER root
-RUN yum install -y --allowerasing curl jq && yum clean all
+RUN microdnf install -y jq && microdnf clean all
 
 COPY schemas/ /opt/schemas/
 COPY init-schemas.sh /opt/init-schemas.sh

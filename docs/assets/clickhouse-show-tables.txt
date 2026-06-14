@@ -1,0 +1,12 @@
+generated_at=2026-06-14T17:37:28.440413+00:00
+command=SHOW TABLES FROM analytics
+
+inventory_changes
+kafka_inventory_changes
+kafka_orders
+kafka_payments
+mv_kafka_inventory_changes_to_inventory_changes
+mv_kafka_orders_to_orders
+mv_kafka_payments_to_payments
+orders
+payments

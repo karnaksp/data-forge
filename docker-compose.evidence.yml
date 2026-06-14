@@ -1,0 +1,9 @@
+services:
+  postgres:
+    ports: !reset []
+  kafka:
+    ports: !reset []
+  schema-registry:
+    ports: !reset []
+  clickhouse:
+    ports: !reset []

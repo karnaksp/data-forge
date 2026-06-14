@@ -15,9 +15,11 @@ ROOT = Path(__file__).resolve().parents[1]
 REQUIRED_FILES = [
     "README.md",
     "CASE_STUDY.md",
+    "docker-compose.evidence.yml",
     "docs/retail-cdc-runbook.md",
     "docs/assets/README.md",
     "docs/evidence/retail-cdc-evidence.md",
+    "scripts/capture_clickhouse_evidence.py",
     "sql/validation/postgres_retail_seed_checks.sql",
     "sql/validation/kafka_topic_inventory.md",
     "sql/validation/clickhouse_ingestion_contract.md",
