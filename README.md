@@ -2,6 +2,8 @@
 
 Your modern data stack playground. Spin up core components of a real data platform and practice end‑to‑end workflows locally.
 
+> Portfolio note: this repository is currently a fork used as a Data Engineering lab. See [CASE_STUDY.md](CASE_STUDY.md) for the planned applied retail CDC/lakehouse scenario and the explicit contribution checklist.
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Docker](https://img.shields.io/badge/Docker-20.10+-blue.svg)](https://www.docker.com/)
 [![Docker Compose](https://img.shields.io/badge/Docker%20Compose-2.0+-blue.svg)](https://docs.docker.com/compose/)
