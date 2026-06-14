@@ -63,6 +63,12 @@ Run the example analytical queries:
 docker compose --env-file .env.example -f docker-compose.yml -f docker-compose.evidence.yml exec -T clickhouse clickhouse-client --multiquery < sql/examples/clickhouse_realtime_sales.sql
 ```
 
+Capture the generator log evidence:
+
+```bash
+docker compose --env-file .env.example -f docker-compose.yml -f docker-compose.evidence.yml logs --no-color --tail 200 data-generator > docs/assets/clickhouse-ingestion-log.txt
+```
+
 ## Evidence to Capture
 
 Prefer text logs for PR review because they are diffable and easy to search:

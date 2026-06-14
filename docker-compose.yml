@@ -149,7 +149,7 @@ services:
     ports:
       - "9092:9092"
     volumes:
-      - kafka-data:/tmp/kraft-combined-logs
+      - kafka-data:/var/lib/kafka/data
     healthcheck:
       test: ["CMD", "bash", "-c", "echo > /dev/tcp/localhost/9092"]
       interval: 30s
