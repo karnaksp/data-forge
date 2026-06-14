@@ -18,6 +18,11 @@ Why: Set up, extend, and debug the stack efficiently.
   - `docker compose --profile core up -d`
   - `docker compose ps` to check health
 
+- Validate the portfolio smoke contracts before changing runtime wiring:
+  - `python scripts/validate_runtime_contract.py`
+  - `python scripts/validate_project.py`
+  - `docker compose --env-file .env.example config --quiet`
+
 - Environment variables (common):
   - `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`
   - `POSTGRES_CDC_USER`, `POSTGRES_CDC_PASSWORD`
@@ -28,5 +33,6 @@ Why: Set up, extend, and debug the stack efficiently.
 ## 📝 Notes
 
 - Keep changes minimal and tested with the compose profiles you affect.
+- Keep Compose env names aligned with `infra/data-generator/config.py`; the runtime contract validator checks this without starting containers.
 - For docs, follow [guidelines.md](guidelines.md).
 - Open an issue for substantial changes or new services.

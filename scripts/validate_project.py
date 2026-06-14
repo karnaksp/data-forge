@@ -7,6 +7,7 @@ import re
 from pathlib import Path
 
 from validate_bronze_contract import validate_bronze_contract
+from validate_runtime_contract import validate_runtime_contract
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -102,6 +103,7 @@ def main() -> int:
     failures.extend(validate_sql_files())
     failures.extend(validate_case_study_framing())
     failures.extend(validate_bronze_contract())
+    failures.extend(validate_runtime_contract())
 
     if failures:
         print("Project validation failed:")
