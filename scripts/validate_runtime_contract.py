@@ -2,7 +2,7 @@
 """Static runtime-contract checks for the retail CDC case study.
 
 These checks intentionally avoid importing Airflow, Spark, Docker Compose, or
-the generator package. They guard the portfolio demo contract against drift
+the generator package. They guard the local CDC/lakehouse contract against drift
 between Compose envs, generator config, Kafka topics, schemas, DAG params,
 Debezium config, Postgres CDC tables, and ClickHouse example sinks.
 """

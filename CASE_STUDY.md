@@ -1,8 +1,8 @@
-# Data Forge: портфельный case study
+# Data Forge: applied retail CDC/lakehouse lab
 
 ## Статус
 
-Этот репозиторий — fork, который используется как портфельная лаборатория по современным Data Engineering workflows. Базовый стек взят из upstream-проекта; в этом fork он превращается в воспроизводимый applied case study с явным описанием моего вклада, validation queries и run evidence.
+Этот репозиторий — fork для проверки applied retail CDC/lakehouse workflows. Базовый стек взят из upstream-проекта; в этом fork он превращается в воспроизводимый инженерный сценарий с явным описанием добавленного слоя, validation queries и run evidence.
 
 ## Целевой сценарий
 
@@ -31,7 +31,7 @@ flowchart LR
 - Добавил evidence capture contract в [docs/assets/](docs/assets/).
 - Добавил ClickHouse Kafka ingestion contract с source tables, materialized views и CI-backed validation: [sql/validation/clickhouse_ingestion_contract.md](sql/validation/clickhouse_ingestion_contract.md).
 - Добавил сгенерированный static evidence bundle: [docs/evidence/retail-cdc-evidence.md](docs/evidence/retail-cdc-evidence.md).
-- Оставил README честным: явно указал происхождение fork и текущие ограничения.
+- Оставил README честным: явно указал происхождение fork, целевой инженерный сценарий и текущие ограничения.
 
 ## Validation Contract / Контракт валидации
 

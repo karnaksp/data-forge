@@ -18,7 +18,7 @@ Why: Set up, extend, and debug the stack efficiently.
   - `docker compose --profile core up -d`
   - `docker compose ps` to check health
 
-- Validate the portfolio smoke contracts before changing runtime wiring:
+- Validate the CDC/lakehouse smoke contracts before changing runtime wiring:
   - `python scripts/validate_runtime_contract.py`
   - `python scripts/validate_project.py`
   - `docker compose --env-file .env.example config --quiet`

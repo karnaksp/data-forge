@@ -1,6 +1,6 @@
 # Evidence Assets
 
-Store portfolio evidence captured from the retail CDC run here.
+Store runtime evidence captured from the retail CDC run here.
 
 Recommended files:
 

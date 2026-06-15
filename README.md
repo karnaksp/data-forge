@@ -2,7 +2,7 @@
 
 Локальная площадка для современного data stack. Здесь можно поднять основные компоненты реальной data platform и отработать end-to-end workflows без облачных счетов и production-риска.
 
-> Portfolio Case Study: этот репозиторий — fork, который я использую как Data Engineering lab. Я превращаю его в applied retail CDC/lakehouse case study с воспроизводимым runbook, validation SQL и явным описанием моего вклада. См. [CASE_STUDY.md](CASE_STUDY.md).
+> Applied retail CDC/lakehouse lab: этот репозиторий — fork, который используется для проверки Debezium, Kafka, ClickHouse и lakehouse workflows. В fork добавлены воспроизводимый runbook, validation SQL и описание инженерного вклада. См. [CASE_STUDY.md](CASE_STUDY.md).
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Docker](https://img.shields.io/badge/Docker-20.10+-blue.svg)](https://www.docker.com/)
@@ -106,7 +106,7 @@ docker compose --profile datagen up -d
 
 Подробности по профилям и командам — в [docs/architecture.md](docs/architecture.md).
 
-## 🧪 Portfolio case study
+## 🧪 Applied CDC/lakehouse lab
 
 Applied scenario: **retail CDC to lakehouse and realtime analytics**.
 
@@ -117,7 +117,7 @@ Applied scenario: **retail CDC to lakehouse and realtime analytics**.
 
 Начинать лучше отсюда:
 
-- [CASE_STUDY.md](CASE_STUDY.md) - scope fork, мой вклад и acceptance criteria.
+- [CASE_STUDY.md](CASE_STUDY.md) - scope fork, инженерный вклад и acceptance criteria.
 - [docs/retail-cdc-runbook.md](docs/retail-cdc-runbook.md) - воспроизводимый локальный сценарий.
 - [sql/validation/postgres_retail_seed_checks.sql](sql/validation/postgres_retail_seed_checks.sql) - source-system data quality checks.
 - [sql/validation/kafka_topic_inventory.md](sql/validation/kafka_topic_inventory.md) - streaming validation checklist.
@@ -137,7 +137,7 @@ Applied scenario: **retail CDC to lakehouse and realtime analytics**.
 
 Project layout, env vars и советы по изменениям — в [docs/development.md](docs/development.md).
 
-Portfolio quality checks:
+Local quality checks:
 
 ```bash
 python scripts/validate_project.py

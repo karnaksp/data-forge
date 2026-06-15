@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Lightweight quality checks for the Data Forge portfolio case study."""
+"""Lightweight quality checks for the Data Forge CDC/lakehouse lab."""
 
 from __future__ import annotations
 
@@ -92,12 +92,12 @@ def validate_case_study_framing() -> list[str]:
     required_phrases = [
         (case_study, "My Contribution in This Fork", "CASE_STUDY.md"),
         (case_study, "Validation Contract", "CASE_STUDY.md"),
-        (readme, "Portfolio Case Study", "README.md"),
+        (readme, "Applied CDC/lakehouse lab", "README.md"),
         (readme, "retail CDC", "README.md"),
     ]
     for text, phrase, file_name in required_phrases:
         if phrase not in text:
-            failures.append(f"{file_name} is missing required portfolio framing: {phrase}")
+            failures.append(f"{file_name} is missing required CDC/lakehouse framing: {phrase}")
     return failures
 
 
