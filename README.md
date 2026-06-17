@@ -1,242 +1,208 @@
-# 🔥 Data Forge — Data Engineering Playground
+# Data Forge
 
-Локальная площадка для современного data stack. Здесь можно поднять основные компоненты реальной data platform и отработать end-to-end workflows без облачных счетов и production-риска.
+Data Forge is a local data engineering platform for building useful personal and applied data products without sending private data to external services.
 
-> Applied retail CDC/lakehouse lab: этот репозиторий — fork, который используется для проверки Debezium, Kafka, ClickHouse и lakehouse workflows. В fork добавлены воспроизводимый runbook, validation SQL и описание инженерного вклада. См. [CASE_STUDY.md](CASE_STUDY.md).
+The repository now has two connected layers:
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Docker](https://img.shields.io/badge/Docker-20.10+-blue.svg)](https://www.docker.com/)
-[![Docker Compose](https://img.shields.io/badge/Docker%20Compose-2.0+-blue.svg)](https://docs.docker.com/compose/)
+- a reusable local data platform: Postgres, ClickHouse, Kafka, MinIO, Hive Metastore, Iceberg, Spark, Trino, Airflow, Temporal, dbt-style models, data contracts, quality checks and evidence;
+- an applied product domain: LifeHub, a local-only sports, recovery and decision engine for Saint Petersburg.
 
-Вместо того чтобы только читать про "data lakes" и "lakehouses", здесь их можно реально запустить. Это инженерный тренажёр для data engineers: локально, прозрачно и без риска сломать production.
+Retail CDC is still available as a reproducible engineering scenario, but it is no longer the main product story. The main goal is to make the repository a practical, extensible data platform that can accept new life, market, sport, project or operational sources and turn them into analytics and decisions.
 
----
+## Product Value
 
-## 🎯 Что внутри
+LifeHub answers a concrete daily question:
 
-Data Forge включает полный современный data stack на привычных индустриальных инструментах:
+> What should I do today, given weather, places, training history, recovery, goals and feedback?
 
-### 🗄️ Storage & Catalog
-- **MinIO** → S3-compatible object storage для data lakes
-- **Hive Metastore** → централизованный metadata catalog для таблиц и схем
+It currently supports:
 
-### ⚡ Compute Engines
-- **Trino** → interactive SQL query engine для federated analytics
-- **Apache Spark** → distributed processing для batch и streaming workloads
+- Saint Petersburg weather readiness from Open-Meteo fixtures or API calls;
+- public outdoor spots and sport locations from config or Overpass;
+- Telegram-style activity diary and feedback loop;
+- skate, snowboard, moto lesson, volleyball, gym, walk and recovery recommendations;
+- GPX/activity file summaries;
+- sleep quality as a first-class recovery source;
+- daily and weekly context profiles;
+- local evidence generation with privacy checks.
 
-### 🌊 Streaming & CDC
-- **Apache Kafka** → event streaming platform
-- **Schema Registry** → schema evolution and compatibility
-- **Debezium** → change data capture из баз данных
+The important engineering point: these are not one-off scripts. Sources enter a shared lakehouse contract, flow through landing JSONL, Spark, Iceberg Bronze/Silver/Gold and Trino, and can then feed analytics or product decisions.
 
-### 🗃️ Databases
-- **PostgreSQL** → primary OLTP database (source system)
-- **ClickHouse** → columnar analytics database (sink)
+## Data Platform
 
-### 🔄 Orchestration
-- **Apache Airflow 3** → workflow orchestration
+| Layer | Tools | Purpose |
+| --- | --- | --- |
+| Operational storage | Postgres | Local state, diary logs, spots, preferences, recommendations |
+| Analytical storage | ClickHouse | Time-series and product analytics marts |
+| Data lake | MinIO | S3-compatible object storage |
+| Table format | Iceberg | Bronze/Silver/Gold lakehouse tables |
+| Metadata | Hive Metastore | Iceberg catalog metadata |
+| Processing | Spark | Landing JSONL to Iceberg loading |
+| Query/DWH | Trino | SQL access to Iceberg and analytical stores |
+| Streaming/CDC | Kafka, Schema Registry, Debezium | Retail CDC and event-streaming lab |
+| Orchestration | Airflow, Temporal | Scheduled and durable workflows |
+| Analytics engineering | dbt-compatible SQL | Staging and mart models |
+| DataOps | contracts, catalog, expectations, validators, evidence | Reproducible quality and review gates |
 
-### 📊 Visualization & Exploration
-- **Apache Superset** → modern BI и data visualization
-- **JupyterLab** → interactive data science environment
+Detailed map: [docs/data-engineering-stack.md](docs/data-engineering-stack.md).
 
-### 🏭 Data Generation
-- **Data Generator** → реалистичный retail data producer для Kafka topics и Postgres tables (см. [infra/data-generator/README.md](infra/data-generator/README.md))
+## LifeHub
 
-### 🧭 Personal Data Product
-- **LifeHub** → local-only personal decision engine для Санкт-Петербурга: Open-Meteo weather, public outdoor spots, Telegram diary, diary-aware recommendations, weekly coach summary и outdoor readiness scoring (см. [docs/lifehub.md](docs/lifehub.md))
+LifeHub is the first real product built on the platform.
 
-### ✅ Data Engineering Controls
-- **Contracts** → data contract для LifeHub и Avro contracts для streaming topics
-- **Catalog & Expectations** → dataset inventory, privacy classification, freshness SLOs, expectation suites
-- **Quality gates** → static validation, SQL checks, freshness checks, runtime DQ для Postgres/ClickHouse
-- **Analytics Engineering** → dbt-compatible staging/mart models поверх Trino/ClickHouse/Postgres
-- **Lineage** → OpenLineage-compatible event для LifeHub pipeline
-- **Evidence** → redacted evidence bundles для reviewer-friendly проверки
-- **Marts** → ClickHouse views и Trino observability SQL для прикладной аналитики
+Core docs:
 
----
+- [docs/lifehub.md](docs/lifehub.md) - product, commands, storage, Telegram behavior and source onboarding
+- [infra/lifehub/README.md](infra/lifehub/README.md) - service-level notes
+- [config/lifehub/source_registry.yaml](config/lifehub/source_registry.yaml) - source onboarding contract
+- [contracts/lifehub/data_contract.yaml](contracts/lifehub/data_contract.yaml) - data contract
+- [catalog/lifehub/datasets.yaml](catalog/lifehub/datasets.yaml) - dataset catalog
 
-## 🚀 Быстрый старт
+Useful commands:
 
-### Требования
+```bash
+make lifehub-tests
+make lifehub-demo
+make lifehub-lake-export-fixture
+make lifehub-lakehouse-runtime-smoke
+make lifehub-source-onboard-demo
+make lifehub-sleep-fixture
+make lifehub-evidence-flow
+```
 
-- **Docker** 20.10+ 
-- **Docker Compose** 2.0+
-- **8GB+ RAM** рекомендуется
-- **20GB+ disk space** для всех сервисов
+The full lakehouse smoke starts local services, exports fixture LifeHub sources, loads them with Spark into Iceberg and queries them through Trino:
 
-### 1. Склонировать и настроить
+```bash
+make lifehub-lakehouse-runtime-smoke
+```
+
+Evidence is written to:
+
+- [docs/evidence/lifehub-lakehouse-evidence.md](docs/evidence/lifehub-lakehouse-evidence.md)
+- [docs/evidence/lifehub-lakehouse-runtime-evidence.md](docs/evidence/lifehub-lakehouse-runtime-evidence.md)
+
+## Adding a New Source
+
+New sources should enter through the same medallion contract instead of becoming isolated scripts.
+
+Generate an onboarding package:
+
+```bash
+PYTHONPATH=infra/lifehub python -m lifehub.cli source-onboard sleep_quality \
+  --domain recovery \
+  --source-type local_json_event \
+  --event-type sleep_metric \
+  --required-fields occurred_at,domain,metric_name,metric_value \
+  --output-dir tmp/lifehub/source_onboarding
+```
+
+The generator creates:
+
+- a source registry entry;
+- a synthetic fixture;
+- a runbook with import and lakehouse smoke commands.
+
+Then the source can be promoted into a first-class connector, like `sleep_quality`, which now:
+
+- has its own fixture and normalizer;
+- writes privacy-safe landing events;
+- appears in Iceberg Bronze/Silver via Spark;
+- is queryable in Trino;
+- influences LifeHub recommendations by turning high-impact activities into caution when recovery is low.
+
+## Quick Start
+
+Requirements:
+
+- Docker 20.10+
+- Docker Compose 2+
+- 8 GB RAM minimum, 16 GB recommended for the full stack
+- 20 GB disk space recommended
+
+Setup:
 
 ```bash
 git clone https://github.com/karnaksp/data-forge.git
 cd data-forge
-
-# Copy environment template
 cp .env.example .env
-
-# Review and adjust settings
-nano .env
 ```
 
-### 2. Запустить core services
+Core platform:
 
 ```bash
-# Start essential data stack (MinIO, Postgres, ClickHouse, etc.)
 docker compose --profile core up -d
-
-# Wait for services to be healthy
 docker compose ps
 ```
 
-### 3. Добавить compute и orchestration
+LifeHub local profile:
 
 ```bash
-# Add Airflow for orchestration
-docker compose --profile airflow up -d
-
-# Add exploration tools
-docker compose --profile explore up -d
-
-# Add realistic data generation
-docker compose --profile datagen up -d
-
-# Add local-only LifeHub sports/wellbeing digest
 docker compose --profile lifehub up -d
 ```
 
-### 4. Открыть сервисы
+Lakehouse smoke:
+
+```bash
+make lifehub-lakehouse-runtime-smoke
+```
+
+General validation:
+
+```bash
+make validate
+```
+
+## Services
 
 | Service | URL | Default Login |
-|---------|-----|---------------|
-|**Kafka UI**|http://localhost:8082 |No auth|
-| **Airflow** | http://localhost:8085 | `airflow` / `airflow` |
-| **Superset** | http://localhost:8089 | `admin` / `admin` |
-| **MinIO Console** | http://localhost:9001 | `minio` / `minio123` |
-| **Trino** | http://localhost:8080 | No auth |
+| --- | --- | --- |
+| Kafka UI | http://localhost:8082 | no auth |
+| Airflow | http://localhost:8085 | `airflow` / `airflow` |
+| Superset | http://localhost:8089 | `admin` / `admin` |
+| MinIO Console | http://localhost:9001 | `minio` / `minio123` |
+| Trino | http://localhost:8080 | no auth |
+| Temporal Web | http://localhost:8233 | no auth |
 
----
+Full service index: [docs/services.md](docs/services.md).
 
-## 🧩 Architecture profiles
+## Retail CDC Scenario
 
-Подробности по профилям и командам — в [docs/architecture.md](docs/architecture.md).
+The original retail CDC/lakehouse scenario is kept as an engineering lab and regression surface.
 
-## 🧱 Data Engineering stack map
+It covers:
 
-Как стек покрывает ingestion, orchestration, contracts, quality, serving, evidence и exploration: [docs/data-engineering-stack.md](docs/data-engineering-stack.md).
+- Postgres retail seed tables;
+- Debezium CDC topics;
+- Kafka and Schema Registry contracts;
+- ClickHouse ingestion;
+- validation SQL and evidence.
 
-## 🧪 Applied CDC/lakehouse lab
+Start here when working on the CDC lab:
 
-Applied scenario: **retail CDC to lakehouse and realtime analytics**.
+- [CASE_STUDY.md](CASE_STUDY.md)
+- [docs/retail-cdc-runbook.md](docs/retail-cdc-runbook.md)
+- [docs/evidence/retail-cdc-evidence.md](docs/evidence/retail-cdc-evidence.md)
+- [sql/validation/](sql/validation/)
+- [sql/examples/](sql/examples/)
 
-- source tables: `users`, `products`, `warehouses`, `suppliers`, `inventory`, `warehouse_inventory`, `customer_segments`, `product_suppliers`;
-- business-event topics: `orders.v1`, `payments.v1`, `shipments.v1`, `inventory-changes.v1`, `customer-interactions.v1`;
-- CDC topics: `demo.public.*` из Postgres через Debezium;
-- validation: source counts, duplicate keys, referential integrity, Kafka topic inventory, ClickHouse ingestion wiring и analytical query examples.
+## Repository Guide
 
-Начинать лучше отсюда:
+- [docs/architecture.md](docs/architecture.md) - architecture and compose profiles
+- [docs/data-engineering-stack.md](docs/data-engineering-stack.md) - stack coverage and LifeHub lakehouse flow
+- [docs/development.md](docs/development.md) - local development and validation
+- [docs/troubleshooting.md](docs/troubleshooting.md) - common runtime issues
+- [docs/guidelines.md](docs/guidelines.md) - documentation and contribution style
+- [docs/learning-path.md](docs/learning-path.md) - learning path for the stack
 
-- [CASE_STUDY.md](CASE_STUDY.md) - scope fork, инженерный вклад и acceptance criteria.
-- [docs/retail-cdc-runbook.md](docs/retail-cdc-runbook.md) - воспроизводимый локальный сценарий.
-- [sql/validation/postgres_retail_seed_checks.sql](sql/validation/postgres_retail_seed_checks.sql) - source-system data quality checks.
-- [sql/validation/kafka_topic_inventory.md](sql/validation/kafka_topic_inventory.md) - streaming validation checklist.
-- [sql/validation/clickhouse_ingestion_contract.md](sql/validation/clickhouse_ingestion_contract.md) - Kafka-to-ClickHouse ingestion contract и runtime smoke commands.
-- [docs/evidence/retail-cdc-evidence.md](docs/evidence/retail-cdc-evidence.md) - сгенерированный static evidence bundle для удобной reviewer-проверки.
-- [sql/examples/](sql/examples/) - SQL-примеры для Postgres, ClickHouse и Trino.
+## Privacy Policy
 
----
+This repository is designed for local-first work.
 
-## 📚 Learning path
+- Real Telegram tokens, chat IDs, diary notes, pain text, addresses, route files, broker exports and health exports stay local.
+- Public repository fixtures are synthetic or public-safe.
+- Evidence files store counts and contract status, not raw private records.
+- `.env.example` documents required variables; real `.env` is local only.
 
-Короткая воспроизводимая последовательность notebooks описана в [docs/learning-path.md](docs/learning-path.md).
+## License
 
----
-
-## 🧭 LifeHub sports/wellbeing digest
-
-LifeHub добавляет отдельный local-only домен поверх Data Forge: погода СПб, публичные outdoor spots, подробный Telegram-дневник тренировок, diary-aware recommendations и readiness score для skate/snowboard/moto/volleyball. Быстрый fixture smoke без токенов:
-
-```bash
-make lifehub-demo
-make lifehub-up-local
-make lifehub-quality
-make lifehub-evidence
-```
-
-Подробности: [docs/lifehub.md](docs/lifehub.md).
-
----
-
-## 🛠️ Разработка
-
-Project layout, env vars и советы по изменениям — в [docs/development.md](docs/development.md).
-
-Local quality checks:
-
-```bash
-python scripts/validate_project.py
-docker compose --env-file .env.example config --quiet
-docker compose --env-file .env.example -f docker-compose.yml -f docker-compose.evidence.yml config --quiet
-make lifehub-demo
-```
-
----
-
-## 🤝 Contributing
-
-- Открывайте issues или PRs с понятным scope и шагами проверки.
-- Соблюдайте docs style: [docs/guidelines.md](docs/guidelines.md).
-- Проверяйте изменения через релевантные compose profiles.
-
----
-
-## 📄 License
-
-MIT — см. `LICENSE`. Лицензии сторонних сервисов указаны в их документации.
-
----
-
-## 🌟 Resources
-
-- Docs entrypoint: [docs/](docs/)
-- Architecture: [docs/architecture.md](docs/architecture.md)
-- Learning Path: [docs/learning-path.md](docs/learning-path.md)
-- Development: [docs/development.md](docs/development.md)
-- Troubleshooting: [docs/troubleshooting.md](docs/troubleshooting.md)
-- Service docs index: [docs/services.md](docs/services.md)
-- Guidelines (please read): [docs/guidelines.md](docs/guidelines.md)
-- LifeHub: [docs/lifehub.md](docs/lifehub.md)
-- Data Engineering Stack Map: [docs/data-engineering-stack.md](docs/data-engineering-stack.md)
-
-Service docs (direct links):
-- MinIO: [infra/minio/README.md](infra/minio/README.md)
-- Trino: [infra/trino/README.md](infra/trino/README.md)
-- Spark: [infra/spark/README.md](infra/spark/README.md)
-- Airflow: [infra/airflow/README.md](infra/airflow/README.md)
-- ClickHouse: [infra/clickhouse/README.md](infra/clickhouse/README.md)
-- Kafka: [infra/kafka/README.md](infra/kafka/README.md)
-- Schema Registry: [infra/schema-registry/README.md](infra/schema-registry/README.md)
-- Hive Metastore: [infra/hive-metastore/README.md](infra/hive-metastore/README.md)
-- JupyterLab: [infra/jupyterlab/README.md](infra/jupyterlab/README.md)
-- Superset: [infra/superset/README.md](infra/superset/README.md)
-- Postgres: [infra/postgres/README.md](infra/postgres/README.md)
-- Redis: [infra/redis/README.md](infra/redis/README.md)
-- Debezium: [infra/debezium/README.md](infra/debezium/README.md)
-- Kafka UI: [infra/kafka-ui/README.md](infra/kafka-ui/README.md)
-- LifeHub: [infra/lifehub/README.md](infra/lifehub/README.md)
-
----
-
-## 🙏 Acknowledgments
-
-Проект опирается на open-source communities: Apache (Airflow, Spark, Kafka, Trino), ClickHouse, MinIO, Jupyter, Superset, Redis.
-
----
-
-*Название "Forge" подходит проекту: это место, где сырой материал (data) превращается во что-то структурированное и полезное, а разработчик оттачивает ремесло.* ⚒️
-
----
-
-## 🏭 Data Generation
-
-Usage и configuration описаны в [infra/data-generator/README.md](infra/data-generator/README.md).
+MIT. See [LICENSE](LICENSE).

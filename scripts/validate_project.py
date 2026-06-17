@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Lightweight quality checks for the Data Forge CDC/lakehouse lab."""
+"""Lightweight quality checks for the Data Forge data platform."""
 
 from __future__ import annotations
 
@@ -112,8 +112,10 @@ def validate_case_study_framing() -> list[str]:
     required_phrases = [
         (case_study, "My Contribution in This Fork", "CASE_STUDY.md"),
         (case_study, "Validation Contract", "CASE_STUDY.md"),
-        (readme, "Applied CDC/lakehouse lab", "README.md"),
-        (readme, "retail CDC", "README.md"),
+        (readme, "local data engineering platform", "README.md"),
+        (readme, "LifeHub", "README.md"),
+        (readme, "Retail CDC Scenario", "README.md"),
+        (readme, "retail CDC/lakehouse scenario is kept as an engineering lab", "README.md"),
     ]
     for text, phrase, file_name in required_phrases:
         if phrase not in text:
