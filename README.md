@@ -1,91 +1,136 @@
-# Data Forge
+# Life Data Hub
 
-Data Forge is a local data engineering platform for building useful personal and applied data products without sending private data to external services.
+Локальная data engineering платформа для персональных и прикладных решений: погода, спорт, восстановление, активность, сигналы из проектов и другие источники собираются в единый контур данных, проходят контракты качества и превращаются в понятные рекомендации.
 
-The repository now has two connected layers:
+Главная продуктовая идея:
 
-- a reusable local data platform: Postgres, ClickHouse, Kafka, MinIO, Hive Metastore, Iceberg, Spark, Trino, Airflow, Temporal, dbt-style models, data contracts, quality checks and evidence;
-- an applied product domain: LifeHub, a local-only sports, recovery and decision engine for Saint Petersburg.
+> Каждый день отвечать на вопрос: что делать сегодня, если учитывать погоду в Санкт-Петербурге, места рядом, дневник тренировок, сон, усталость, цели и обратную связь?
 
-Retail CDC is still available as a reproducible engineering scenario, but it is no longer the main product story. The main goal is to make the repository a practical, extensible data platform that can accept new life, market, sport, project or operational sources and turn them into analytics and decisions.
+Проект построен как реальный data-продукт, а не набор разрозненных скриптов. Данные входят через контролируемые источники, сохраняются в operational/event log, попадают в lakehouse, проверяются контрактами и становятся основой для аналитики, Telegram-дайджеста и будущих доменов.
 
-## Product Value
+## Что уже есть
 
-LifeHub answers a concrete daily question:
+- **LifeHub** - персональный домен для спорта, outdoor readiness и восстановления.
+- **Telegram-first интерфейс** - дневник активности, `/today`, `/week`, `/spots`, ежедневный digest.
+- **Санкт-Петербург по умолчанию** - погода, outdoor spots, skate/snow/moto/gym/walk сценарии.
+- **Локальная приватность** - реальные токены, заметки, адреса, health/broker exports не попадают в репозиторий.
+- **Lakehouse pipeline** - landing JSONL -> Spark -> Iceberg Bronze/Silver/Gold -> Trino.
+- **DataOps слой** - data contracts, catalog, expectations, validators, lineage и evidence.
+- **Retail CDC сценарий** - сохранен как инженерная лаборатория для Kafka/Debezium/ClickHouse/Trino.
 
-> What should I do today, given weather, places, training history, recovery, goals and feedback?
+## Продуктовая ценность
 
-It currently supports:
+LifeHub помогает принимать маленькие ежедневные решения на основе данных:
 
-- Saint Petersburg weather readiness from Open-Meteo fixtures or API calls;
-- public outdoor spots and sport locations from config or Overpass;
-- Telegram-style activity diary and feedback loop;
-- skate, snowboard, moto lesson, volleyball, gym, walk and recovery recommendations;
-- GPX/activity file summaries;
-- sleep quality as a first-class recovery source;
-- daily and weekly context profiles;
-- local evidence generation with privacy checks.
+- идти кататься на скейте или выбрать зал;
+- ехать на мотозанятие или учитывать дождь, ветер и риск скользкой дороги;
+- ловить подходящий день для сноуборда и зимних активностей;
+- видеть недельную консистентность по тренировкам;
+- учитывать сон, усталость, настроение и боль перед высокоинтенсивной активностью;
+- добавлять новые источники без переписывания всей платформы.
 
-The important engineering point: these are not one-off scripts. Sources enter a shared lakehouse contract, flow through landing JSONL, Spark, Iceberg Bronze/Silver/Gold and Trino, and can then feed analytics or product decisions.
+MVP не отправляет личные данные во внешние сервисы. Публичные fixture-файлы синтетические или безопасные.
 
-## Data Platform
+## Data Engineering стек
 
-| Layer | Tools | Purpose |
+| Слой | Инструменты | Зачем |
 | --- | --- | --- |
-| Operational storage | Postgres | Local state, diary logs, spots, preferences, recommendations |
-| Analytical storage | ClickHouse | Time-series and product analytics marts |
-| Data lake | MinIO | S3-compatible object storage |
-| Table format | Iceberg | Bronze/Silver/Gold lakehouse tables |
-| Metadata | Hive Metastore | Iceberg catalog metadata |
-| Processing | Spark | Landing JSONL to Iceberg loading |
-| Query/DWH | Trino | SQL access to Iceberg and analytical stores |
-| Streaming/CDC | Kafka, Schema Registry, Debezium | Retail CDC and event-streaming lab |
-| Orchestration | Airflow, Temporal | Scheduled and durable workflows |
-| Analytics engineering | dbt-compatible SQL | Staging and mart models |
-| DataOps | contracts, catalog, expectations, validators, evidence | Reproducible quality and review gates |
+| Operational storage | Postgres | Локальное состояние, дневник, места, настройки, рекомендации |
+| Analytical storage | ClickHouse | Time-series, витрины и быстрые продуктовые срезы |
+| Object storage | MinIO | S3-compatible landing и lakehouse storage |
+| Table format | Iceberg | Bronze/Silver/Gold таблицы |
+| Metadata | Hive Metastore | Каталог Iceberg |
+| Processing | Spark | Загрузка JSONL в lakehouse и нормализация событий |
+| SQL/DWH | Trino | Запросы к Iceberg и аналитическим слоям |
+| Streaming/CDC | Kafka, Schema Registry, Debezium | Инженерная лаборатория для event streaming и CDC |
+| Orchestration | Airflow, Temporal | Плановые и durable workflows |
+| Analytics engineering | dbt-compatible SQL | Staging и mart модели |
+| DataOps | contracts, catalog, expectations, validators, evidence | Проверяемость и воспроизводимость |
+| Product interface | Telegram Bot API | Первый полезный пользовательский интерфейс |
 
-Detailed map: [docs/data-engineering-stack.md](docs/data-engineering-stack.md).
+Подробная карта стека: [docs/data-engineering-stack.md](docs/data-engineering-stack.md).
 
-## LifeHub
+## Быстрый старт
 
-LifeHub is the first real product built on the platform.
+Требования:
 
-Core docs:
+- Docker 20.10+
+- Docker Compose 2+
+- Python 3.11+
+- 8 GB RAM минимум, 16 GB желательно для полного lakehouse smoke
+- около 20 GB свободного места для полного локального стека
 
-- [docs/lifehub.md](docs/lifehub.md) - product, commands, storage, Telegram behavior and source onboarding
-- [infra/lifehub/README.md](infra/lifehub/README.md) - service-level notes
-- [config/lifehub/source_registry.yaml](config/lifehub/source_registry.yaml) - source onboarding contract
-- [contracts/lifehub/data_contract.yaml](contracts/lifehub/data_contract.yaml) - data contract
-- [catalog/lifehub/datasets.yaml](catalog/lifehub/datasets.yaml) - dataset catalog
+```bash
+git clone https://github.com/karnaksp/life-data-hub.git
+cd life-data-hub
+cp .env.example .env
+```
 
-Useful commands:
+Проверка проекта:
+
+```bash
+make validate
+```
+
+Локальный LifeHub profile:
+
+```bash
+docker compose --profile lifehub up -d
+```
+
+Демо без реальных токенов:
+
+```bash
+make lifehub-demo
+```
+
+Полный lakehouse smoke:
+
+```bash
+make lifehub-lakehouse-runtime-smoke
+```
+
+## Основные команды
 
 ```bash
 make lifehub-tests
-make lifehub-demo
+make lifehub-score-fixture
+make lifehub-weekly-review-fixture
 make lifehub-lake-export-fixture
 make lifehub-lakehouse-runtime-smoke
 make lifehub-source-onboard-demo
 make lifehub-sleep-fixture
 make lifehub-evidence-flow
+make lifehub-cockpit-demo
 ```
 
-The full lakehouse smoke starts local services, exports fixture LifeHub sources, loads them with Spark into Iceberg and queries them through Trino:
+## LifeHub
 
-```bash
-make lifehub-lakehouse-runtime-smoke
-```
+LifeHub - первый прикладной продукт внутри платформы.
 
-Evidence is written to:
+Документация:
 
-- [docs/evidence/lifehub-lakehouse-evidence.md](docs/evidence/lifehub-lakehouse-evidence.md)
-- [docs/evidence/lifehub-lakehouse-runtime-evidence.md](docs/evidence/lifehub-lakehouse-runtime-evidence.md)
+- [docs/lifehub.md](docs/lifehub.md) - продукт, команды, Telegram behavior, storage и source onboarding;
+- [infra/lifehub/README.md](infra/lifehub/README.md) - сервисный слой;
+- [config/lifehub/source_registry.yaml](config/lifehub/source_registry.yaml) - реестр источников;
+- [contracts/lifehub/data_contract.yaml](contracts/lifehub/data_contract.yaml) - data contract;
+- [catalog/lifehub/datasets.yaml](catalog/lifehub/datasets.yaml) - каталог датасетов;
+- [expectations/lifehub/expectations.yaml](expectations/lifehub/expectations.yaml) - проверки качества.
 
-## Adding a New Source
+Текущие источники MVP:
 
-New sources should enter through the same medallion contract instead of becoming isolated scripts.
+- Open-Meteo forecast fixtures/API для Санкт-Петербурга;
+- OpenStreetMap/Overpass fixtures/API для sport/outdoor мест;
+- Telegram diary model для ручного логирования;
+- GPX/activity files;
+- sleep quality как recovery source;
+- context, GitHub и market signal fixtures для будущих доменов.
 
-Generate an onboarding package:
+## Как добавить новый источник
+
+Новые источники должны входить через общий medallion-контракт, а не через отдельные одноразовые скрипты.
+
+Пример генерации onboarding package:
 
 ```bash
 PYTHONPATH=infra/lifehub python -m lifehub.cli source-onboard sleep_quality \
@@ -96,113 +141,80 @@ PYTHONPATH=infra/lifehub python -m lifehub.cli source-onboard sleep_quality \
   --output-dir tmp/lifehub/source_onboarding
 ```
 
-The generator creates:
+Генератор создает:
 
-- a source registry entry;
-- a synthetic fixture;
-- a runbook with import and lakehouse smoke commands.
+- source registry entry;
+- synthetic fixture;
+- runbook с import и lakehouse smoke командами.
 
-Then the source can be promoted into a first-class connector, like `sleep_quality`, which now:
+После этого источник можно продвинуть в first-class connector. Так уже сделан `sleep_quality`: он нормализуется, пишет privacy-safe landing events, попадает в Iceberg Bronze/Silver, доступен в Trino и влияет на рекомендации.
 
-- has its own fixture and normalizer;
-- writes privacy-safe landing events;
-- appears in Iceberg Bronze/Silver via Spark;
-- is queryable in Trino;
-- influences LifeHub recommendations by turning high-impact activities into caution when recovery is low.
+## Сервисы
 
-## Quick Start
-
-Requirements:
-
-- Docker 20.10+
-- Docker Compose 2+
-- 8 GB RAM minimum, 16 GB recommended for the full stack
-- 20 GB disk space recommended
-
-Setup:
-
-```bash
-git clone https://github.com/karnaksp/data-forge.git
-cd data-forge
-cp .env.example .env
-```
-
-Core platform:
-
-```bash
-docker compose --profile core up -d
-docker compose ps
-```
-
-LifeHub local profile:
-
-```bash
-docker compose --profile lifehub up -d
-```
-
-Lakehouse smoke:
-
-```bash
-make lifehub-lakehouse-runtime-smoke
-```
-
-General validation:
-
-```bash
-make validate
-```
-
-## Services
-
-| Service | URL | Default Login |
+| Сервис | URL | Логин по умолчанию |
 | --- | --- | --- |
-| Kafka UI | http://localhost:8082 | no auth |
+| Kafka UI | http://localhost:8082 | без авторизации |
 | Airflow | http://localhost:8085 | `airflow` / `airflow` |
 | Superset | http://localhost:8089 | `admin` / `admin` |
 | MinIO Console | http://localhost:9001 | `minio` / `minio123` |
-| Trino | http://localhost:8080 | no auth |
-| Temporal Web | http://localhost:8233 | no auth |
+| Trino | http://localhost:8080 | без авторизации |
+| Temporal Web | http://localhost:8233 | без авторизации |
 
-Full service index: [docs/services.md](docs/services.md).
+Полный индекс сервисов: [docs/services.md](docs/services.md).
 
-## Retail CDC Scenario
+## Evidence
 
-The original retail CDC/lakehouse scenario is kept as an engineering lab and regression surface.
+Проект хранит проверяемые evidence-файлы без приватного содержимого:
 
-It covers:
+- [docs/evidence/lifehub-lakehouse-evidence.md](docs/evidence/lifehub-lakehouse-evidence.md);
+- [docs/evidence/lifehub-lakehouse-runtime-evidence.md](docs/evidence/lifehub-lakehouse-runtime-evidence.md);
+- [docs/evidence/lifehub-evidence.md](docs/evidence/lifehub-evidence.md);
+- [docs/evidence/retail-cdc-evidence.md](docs/evidence/retail-cdc-evidence.md).
 
-- Postgres retail seed tables;
+## Retail CDC сценарий
+
+Исходный retail CDC/lakehouse сценарий сохранен как инженерная лаборатория и regression surface.
+
+Он покрывает:
+
+- seed-таблицы Postgres;
 - Debezium CDC topics;
-- Kafka and Schema Registry contracts;
+- Kafka и Schema Registry contracts;
 - ClickHouse ingestion;
-- validation SQL and evidence.
+- validation SQL и evidence.
 
-Start here when working on the CDC lab:
+Документация:
 
-- [CASE_STUDY.md](CASE_STUDY.md)
-- [docs/retail-cdc-runbook.md](docs/retail-cdc-runbook.md)
-- [docs/evidence/retail-cdc-evidence.md](docs/evidence/retail-cdc-evidence.md)
-- [sql/validation/](sql/validation/)
-- [sql/examples/](sql/examples/)
+- [CASE_STUDY.md](CASE_STUDY.md);
+- [docs/retail-cdc-runbook.md](docs/retail-cdc-runbook.md);
+- [sql/validation/](sql/validation/);
+- [sql/examples/](sql/examples/).
 
-## Repository Guide
+## Разработка
 
-- [docs/architecture.md](docs/architecture.md) - architecture and compose profiles
-- [docs/data-engineering-stack.md](docs/data-engineering-stack.md) - stack coverage and LifeHub lakehouse flow
-- [docs/development.md](docs/development.md) - local development and validation
-- [docs/troubleshooting.md](docs/troubleshooting.md) - common runtime issues
-- [docs/guidelines.md](docs/guidelines.md) - documentation and contribution style
-- [docs/learning-path.md](docs/learning-path.md) - learning path for the stack
+- [docs/architecture.md](docs/architecture.md) - архитектура и Docker Compose profiles;
+- [docs/development.md](docs/development.md) - локальная разработка и validation;
+- [docs/troubleshooting.md](docs/troubleshooting.md) - типовые проблемы;
+- [docs/guidelines.md](docs/guidelines.md) - стиль документации и изменений;
+- [docs/learning-path.md](docs/learning-path.md) - учебный маршрут по стеку.
 
-## Privacy Policy
+## Releases и packages
 
-This repository is designed for local-first work.
+Релизы публикуются через GitHub Releases. Docker package для LifeHub service собирается в GitHub Container Registry как:
 
-- Real Telegram tokens, chat IDs, diary notes, pain text, addresses, route files, broker exports and health exports stay local.
-- Public repository fixtures are synthetic or public-safe.
-- Evidence files store counts and contract status, not raw private records.
-- `.env.example` documents required variables; real `.env` is local only.
+```text
+ghcr.io/karnaksp/life-data-hub/lifehub
+```
 
-## License
+Публикация package запускается при создании release tag `v*`.
 
-MIT. See [LICENSE](LICENSE).
+## Приватность
+
+- Реальные `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, дневниковые заметки, pain text, адреса, маршруты, broker exports и health exports остаются локально.
+- В репозитории лежат только synthetic/demo данные и публично безопасные fixtures.
+- Evidence хранит counts, статусы контрактов и redacted summaries.
+- `.env.example` описывает переменные, настоящий `.env` не коммитится.
+
+## Лицензия
+
+MIT. См. [LICENSE](LICENSE).

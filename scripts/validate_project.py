@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Lightweight quality checks for the Data Forge data platform."""
+"""Lightweight quality checks for the Life Data Hub platform."""
 
 from __future__ import annotations
 
@@ -16,6 +16,8 @@ from validate_runtime_contract import validate_runtime_contract
 ROOT = Path(__file__).resolve().parents[1]
 REQUIRED_FILES = [
     "README.md",
+    "CHANGELOG.md",
+    ".github/workflows/package.yml",
     "CASE_STUDY.md",
     "docker-compose.evidence.yml",
     "docker-compose.lakehouse-smoke.yml",
@@ -112,10 +114,11 @@ def validate_case_study_framing() -> list[str]:
     required_phrases = [
         (case_study, "My Contribution in This Fork", "CASE_STUDY.md"),
         (case_study, "Validation Contract", "CASE_STUDY.md"),
-        (readme, "local data engineering platform", "README.md"),
+        (readme, "Локальная data engineering платформа", "README.md"),
         (readme, "LifeHub", "README.md"),
-        (readme, "Retail CDC Scenario", "README.md"),
-        (readme, "retail CDC/lakehouse scenario is kept as an engineering lab", "README.md"),
+        (readme, "Retail CDC сценарий", "README.md"),
+        (readme, "сохранен как инженерная лаборатория", "README.md"),
+        (readme, "ghcr.io/karnaksp/life-data-hub/lifehub", "README.md"),
     ]
     for text, phrase, file_name in required_phrases:
         if phrase not in text:

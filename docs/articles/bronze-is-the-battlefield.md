@@ -46,15 +46,15 @@ Bronze - это raw layer. В нем данные еще не приведены
 
 ---
 
-## What Data Forge Validates
+## What Life Data Hub Validates
 
-[Data Forge](../../README.md) - локальный modern data stack, который можно поднять на laptop: Spark, Trino, ClickHouse, Iceberg, Kafka, Airflow, MinIO через Docker Compose. Его задача не в том, чтобы “показать набор инструментов”, а в том, чтобы проверять реальные ingestion flows: retail events, CDC lineage, Bronze-to-analytics contracts и runtime evidence.
+[Life Data Hub](../../README.md) - локальный modern data stack, который можно поднять на laptop: Spark, Trino, ClickHouse, Iceberg, Kafka, Airflow, MinIO через Docker Compose. Его задача не в том, чтобы “показать набор инструментов”, а в том, чтобы проверять реальные ingestion flows: LifeHub events, retail CDC lineage, Bronze-to-analytics contracts и runtime evidence.
 
 Один из ключевых компонентов - data generator. Он создает live retail stream: orders, payments, shipments, customers и пишет события в Kafka.
 
 - Data Generator: [infra/data-generator/README.md](../../infra/data-generator/README.md)
 
-Эта статья объясняет, зачем нужен Bronze layer и как Data Forge проверяет bounded ingestion pattern.
+Эта статья объясняет, зачем нужен Bronze layer и как Life Data Hub проверяет bounded ingestion pattern.
 
 ---
 
@@ -219,8 +219,8 @@ Markdown diagram:
 
 ```bash
 # Clone and configure
-git clone https://github.com/fortiql/data-forge.git
-cd data-forge && cp .env.example .env
+git clone https://github.com/karnaksp/life-data-hub.git
+cd life-data-hub && cp .env.example .env
 
 # Start core services (MinIO, Trino, Spark, Kafka, etc.)
 docker compose --profile core up -d
@@ -420,13 +420,13 @@ checkpoints/spark/iceberg/bronze/raw_events/
 
 ## Extensible Ingestion Reference
 
-Data Forge - локальная reference-платформа, которую можно расширять под другие ingestion contracts.
+Life Data Hub - локальная reference-платформа, которую можно расширять под другие ingestion contracts.
 
 - Нужно сравнить Flink с Spark AvailableNow? Добавьте отдельный profile и одинаковые evidence checks.
 - Нужен Delta вместо Iceberg? Добавьте параллельный sink и сравните maintenance semantics.
 - Видите более простой DAG? Оформите PR с теми же validation guarantees.
 
-Start here: [Data Forge repo](../../README.md)
+Start here: [Life Data Hub repo](../../README.md)
 
 ---
 
@@ -440,5 +440,5 @@ Start here: [Data Forge repo](../../README.md)
 
 ---
 
-This article is part of the [Data Forge](https://github.com/fortiql/data-forge) project.  
+This article is part of the [Life Data Hub](https://github.com/karnaksp/life-data-hub) project.  
 > Published also on Medium: [link](https://medium.com/@thedatainsight/bronze-is-the-battlefield-why-real-data-engineers-start-at-the-source-6eaa16730f0a)

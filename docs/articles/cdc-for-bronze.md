@@ -41,13 +41,13 @@ Postgres здесь source of operational truth, WAL - журнал committed ch
 
 ---
 
-## Data Forge: CDC Ingestion Reference
+## Life Data Hub: CDC Ingestion Reference
 
-Data Forge включает Postgres, Debezium, Kafka, Schema Registry и Spark, чтобы локально проверить WAL-to-Kafka-to-Bronze behavior без production risk. Начинайте с [project README](../../README.md): там есть схема сервисов и то, как publication `demo.public.*` проходит через stack. Затем смотрите [Trino walkthrough](../../infra/trino/README.md), где Iceberg tables доступны через SQL, и [data generator guide](../../infra/data-generator/README.md), где описано, как demo changes попадают в Kafka и Postgres.
+Life Data Hub включает Postgres, Debezium, Kafka, Schema Registry и Spark, чтобы локально проверить WAL-to-Kafka-to-Bronze behavior без production risk. Начинайте с [project README](../../README.md): там есть схема сервисов и то, как publication `demo.public.*` проходит через stack. Затем смотрите [Trino walkthrough](../../infra/trino/README.md), где Iceberg tables доступны через SQL, и [data generator guide](../../infra/data-generator/README.md), где описано, как demo changes попадают в Kafka и Postgres.
 
 ---
 
-## How Data Forge Streams CDC
+## How Life Data Hub Streams CDC
 
 ### Postgres: prepare the source
 
@@ -158,4 +158,4 @@ CDC table для `demo.public.warehouse_inventory` использует общу
 - [Debezium Postgres connector docs](https://debezium.io/documentation/reference/stable/connectors/postgresql.html)
 - Service references: [`infra/postgres/README.md`](../../infra/postgres/README.md), [`infra/debezium/README.md`](../../infra/debezium/README.md)
 
-Data Forge показывает, как retail CDC, Debezium, Iceberg Bronze и ClickHouse/Trino validation собираются в одну воспроизводимую локальную platform.
+Life Data Hub показывает, как retail CDC, Debezium, Iceberg Bronze и ClickHouse/Trino validation собираются в одну воспроизводимую локальную platform.

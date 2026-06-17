@@ -1,6 +1,6 @@
 # Data Engineering Stack Map
 
-Data Forge is intentionally a local platform repo, not a single-purpose app. The stack covers the main data engineering capabilities that are useful to practice, demo, and extend.
+Life Data Hub is intentionally a local platform repo, not a single-purpose app. The stack covers the main data engineering capabilities that are useful to practice, demo, and extend.
 
 ## Capability map
 

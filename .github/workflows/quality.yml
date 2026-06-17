@@ -13,7 +13,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Validate CDC/lakehouse lab files
+      - name: Validate Life Data Hub platform files
         run: |
           python -m py_compile scripts/capture_clickhouse_evidence.py
           python -m py_compile scripts/capture_lifehub_evidence.py
@@ -29,3 +29,4 @@ jobs:
         run: |
           docker compose --env-file .env.example config --quiet
           docker compose --env-file .env.example -f docker-compose.yml -f docker-compose.evidence.yml config --quiet
+          docker compose --env-file .env.example -f docker-compose.yml -f docker-compose.lakehouse-smoke.yml config --quiet

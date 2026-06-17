@@ -5,7 +5,7 @@ Why: Set up, extend, and debug the stack efficiently.
 ## 🚀 How
 
 - Clone and configure env:
-  - `git clone https://github.com/fortiql/data-forge.git && cd data-forge`
+  - `git clone https://github.com/karnaksp/life-data-hub.git && cd life-data-hub`
   - `cp .env.example .env` and adjust to your machine.
 
 - Project structure (high level):
@@ -18,7 +18,7 @@ Why: Set up, extend, and debug the stack efficiently.
   - `docker compose --profile core up -d`
   - `docker compose ps` to check health
 
-- Validate the CDC/lakehouse smoke contracts before changing runtime wiring:
+- Validate the LifeHub and CDC/lakehouse smoke contracts before changing runtime wiring:
   - `python scripts/validate_runtime_contract.py`
   - `python scripts/validate_lifehub_contract.py`
   - `python scripts/validate_project.py`

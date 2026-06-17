@@ -1,6 +1,6 @@
-# Documentation Guidelines - Data Forge
+# Documentation Guidelines - Life Data Hub
 
-Data Forge - локальная reference-платформа для retail CDC, streaming ingestion, lakehouse checks и аналитических sinks. В документации важны не эффектные формулировки, а воспроизводимые команды, понятные ограничения и проверяемый runtime contract.
+Life Data Hub - локальная data engineering платформа для LifeHub, персональных data-продуктов, streaming ingestion, lakehouse checks и аналитических sinks. В документации важны не эффектные формулировки, а воспроизводимые команды, понятные ограничения и проверяемый runtime contract.
 
 ---
 
