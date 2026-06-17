@@ -1,0 +1,2 @@
+slept_at,woke_at,in_bed_minutes,quality_score,recovery_score,source
+2026-06-14T21:40:00+00:00,2026-06-15T05:50:00+00:00,520,82,78,synthetic_sleep_csv

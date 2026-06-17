@@ -1,0 +1,3 @@
+occurred_at,topic,course,lesson,practice_minutes,confidence_score,quiz_score,completed
+2026-06-15T18:00:00+00:00,cornering,Urban Riding,Slow-speed balance,45,72,0.84,true
+2026-06-16T18:30:00+00:00,braking,Urban Riding,Emergency stops,35,78,0.9,true

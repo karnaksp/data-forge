@@ -1,0 +1,2 @@
+occurred_at,asset_class,symbol,side,setup,result,pnl_r,pnl_pct,risk_pct,duration_minutes,emotion,comment
+2026-06-15T13:30:00+00:00,equity,DEMO_EQUITY,long,synthetic breakout,win,1.8,0.9,0.5,95,calm,synthetic redacted importer text

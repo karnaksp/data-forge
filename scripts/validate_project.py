@@ -25,6 +25,10 @@ REQUIRED_FILES = [
     "docs/assets/README.md",
     "docs/assets/life-data-hub-stack.svg",
     "docs/data-engineering-stack.md",
+    "docs/personal-data-sources.md",
+    "docs/privacy-model.md",
+    "docs/source-onboarding-playbook.md",
+    "docs/telegram-data-capture.md",
     "docs/evidence/retail-cdc-evidence.md",
     "scripts/capture_clickhouse_evidence.py",
     "sql/validation/postgres_retail_seed_checks.sql",
@@ -149,7 +153,7 @@ def main() -> int:
     failures.extend(validate_runtime_contract())
     if validate_lifehub_main() != 0:
         failures.append("LifeHub contract validation failed")
-    if validate_lifehub_dataops_main() != 0:
+    if validate_lifehub_dataops_main([]) != 0:
         failures.append("LifeHub DataOps validation failed")
 
     if failures:

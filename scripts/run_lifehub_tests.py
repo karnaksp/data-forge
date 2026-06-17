@@ -13,8 +13,8 @@ from pathlib import Path
 
 from lifehub.activity_files import parse_gpx
 from lifehub.config import load_locations, load_preferences, load_scoring
-from lifehub.context import build_daily_context_profile, render_daily_context_profile
-from lifehub.diary import command_name, parse_log_command
+from lifehub.context import build_daily_context_profile, extract_confidence_and_gaps, render_daily_context_profile
+from lifehub.diary import capture_to_activity_log, command_name, parse_capture_command, parse_log_command
 from lifehub.feedback import feedback_keyboard, parse_feedback_callback, parse_feedback_command
 from lifehub.generic_sources import custom_source_events, load_json_rows
 from lifehub.places import load_spot_fixture
@@ -298,6 +298,15 @@ class DailyContextProfileTests(unittest.TestCase):
         text = render_daily_context_profile(profile)
         self.assertIn("LifeHub daily context profile", text)
         self.assertIn("Decision quality", text)
+        self.assertIn("Profile confidence:", text)
+        self.assertIn("Data gaps:", text)
+
+    def test_daily_context_profiles_data_gaps_from_missing_sources(self) -> None:
+        profile = build_daily_context_profile([], {}, {}, [], {})
+        confidence, gaps = extract_confidence_and_gaps(profile.context_summary)
+        self.assertLess(confidence, 100)
+        self.assertIn("activity_diary_empty", gaps)
+        self.assertIn("sleep_recovery_missing", gaps)
 
 
 class LakeExportTests(unittest.TestCase):
@@ -443,6 +452,31 @@ class DiaryTests(unittest.TestCase):
         self.assertEqual(command_name("/today now"), "/today")
         self.assertEqual(command_name("hello"), "")
 
+    def test_parse_quick_capture_commands(self) -> None:
+        sleep = parse_capture_command("/sleep 7.5h quality=82 recovery=76")
+        self.assertEqual(sleep.capture_type, "sleep")
+        self.assertEqual(sleep.value, 450)
+        self.assertEqual(sleep.payload["quality"], "82")
+
+        mood = parse_capture_command("/mood 8 calm_focus")
+        self.assertEqual(mood.domain, "wellbeing")
+        self.assertEqual(mood.value, 8)
+        self.assertEqual(mood.note, "calm focus")
+
+        pain = parse_capture_command("/pain 4 wrist")
+        self.assertTrue(pain.pain_flag)
+        self.assertEqual(pain.value, 4)
+
+    def test_moto_capture_can_become_activity_log(self) -> None:
+        capture = parse_capture_command("/moto 6 good cones pain=no mood=7 fatigue=4")
+        log = capture_to_activity_log(capture)
+        self.assertIsNotNone(log)
+        assert log
+        self.assertEqual(log.activity_type, "moto_lesson")
+        self.assertEqual(log.result, "good")
+        self.assertEqual(log.intensity, 6)
+        self.assertEqual(log.mood, 7)
+
 
 class FeedbackTests(unittest.TestCase):
     def test_parse_done_command(self) -> None:
@@ -580,6 +614,15 @@ class TemporalContractTests(unittest.TestCase):
         text = (ROOT / "infra/lifehub/lifehub/cli.py").read_text(encoding="utf-8")
         self.assertIn('sub.add_parser("metrics")', text)
         self.assertIn('name == "/metrics"', text)
+
+    def test_capture_sources_and_data_gaps_commands_are_registered(self) -> None:
+        text = (ROOT / "infra/lifehub/lifehub/cli.py").read_text(encoding="utf-8")
+        self.assertIn('sub.add_parser("capture")', text)
+        self.assertIn('sub.add_parser("sources")', text)
+        self.assertIn('sub.add_parser("data-gaps")', text)
+        self.assertIn('name == "/sources"', text)
+        self.assertIn('name == "/data_gaps"', text)
+        self.assertIn("CAPTURE_COMMANDS", text)
 
     def test_daily_workflow_orchestrates_expected_steps(self) -> None:
         text = (ROOT / "infra/lifehub/lifehub/temporal/workflows.py").read_text(encoding="utf-8")

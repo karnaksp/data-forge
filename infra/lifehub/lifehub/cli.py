@@ -13,9 +13,17 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from lifehub.activity_files import parse_gpx
-from lifehub.context import build_daily_context_profile, render_daily_context_profile
+from lifehub.context import build_daily_context_profile, extract_confidence_and_gaps, render_daily_context_profile
 from lifehub.config import env_config, load_locations, load_preferences, load_scoring
-from lifehub.diary import command_name, parse_log_command
+from lifehub.diary import (
+    CAPTURE_COMMANDS,
+    append_capture_jsonl,
+    capture_to_activity_log,
+    command_name,
+    parse_capture_command,
+    parse_log_command,
+    render_capture_ack,
+)
 from lifehub.feedback import feedback_keyboard, parse_feedback_callback, parse_feedback_command
 from lifehub.generic_sources import custom_source_events, load_json_rows
 from lifehub.lake import (
@@ -29,6 +37,7 @@ from lifehub.lake import (
     write_landing_events,
     write_landing_manifest,
 )
+from lifehub.local_files import LOCAL_KINDS, import_local_file, scan_inbox
 from lifehub.places import fetch_overpass_spots, load_spot_fixture
 from lifehub.recommendations import (
     build_recommendations,
@@ -269,6 +278,31 @@ def cmd_sleep_import(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_local_file_import(args: argparse.Namespace) -> int:
+    events = import_local_file(args.path, kind=args.kind)
+    written = write_landing_events(events, args.output_root, args.dt)
+    manifest = write_landing_manifest(written, args.output_root)
+    print(f"Imported {len(events)} local file events from {args.path}.")
+    for path, rows in sorted(written.items()):
+        print(f"- {path}: {rows}")
+    print(f"Manifest: {manifest}")
+    return 0
+
+
+def cmd_inbox_scan(args: argparse.Namespace) -> int:
+    imports = scan_inbox(args.path)
+    events = [event for _, _, file_events in imports for event in file_events]
+    written = write_landing_events(events, args.output_root, args.dt)
+    manifest = write_landing_manifest(written, args.output_root)
+    print(f"Scanned {args.path}: imported {len(events)} events from {len(imports)} files.")
+    for path, kind, file_events in imports:
+        print(f"- {path} ({kind}): {len(file_events)}")
+    for path, rows in sorted(written.items()):
+        print(f"- {path}: {rows}")
+    print(f"Manifest: {manifest}")
+    return 0
+
+
 def cmd_custom_source_import(args: argparse.Namespace) -> int:
     rows = load_json_rows(args.path)
     events = custom_source_events(
@@ -350,6 +384,45 @@ def cmd_metrics(args: argparse.Namespace) -> int:
     if args.send_telegram:
         send_message(cfg.telegram_token, cfg.telegram_chat_id, text)
     print(text)
+    return 0
+
+
+def cmd_capture(args: argparse.Namespace) -> int:
+    cfg = env_config()
+    event = parse_capture_command(args.text)
+    if args.output:
+        append_capture_jsonl(event, args.output)
+    activity_log = capture_to_activity_log(event)
+    if activity_log and args.write_postgres:
+        insert_activity_postgres(cfg.postgres_dsn, activity_log)
+        if args.write_clickhouse:
+            insert_activity_clickhouse(cfg.clickhouse_url, activity_log)
+    print(json.dumps(asdict(event), sort_keys=True))
+    return 0
+
+
+def cmd_sources(args: argparse.Namespace) -> int:
+    print(render_sources())
+    return 0
+
+
+def cmd_source_status(args: argparse.Namespace) -> int:
+    print(render_sources())
+    return 0
+
+
+def cmd_data_gaps(args: argparse.Namespace) -> int:
+    cfg = env_config()
+    profile = build_context_profile(
+        cfg,
+        args.fixture,
+        summary_fixture=args.summary_fixture,
+        feedback_fixture=args.feedback_fixture,
+        metrics_fixture=args.metrics_fixture,
+        signal_fixture=args.signal_fixture,
+        sleep_fixture=args.sleep_fixture,
+    )
+    print(render_data_gaps(profile))
     return 0
 
 
@@ -634,6 +707,32 @@ def handle_telegram_text(text: str, cfg) -> None:
             cfg.telegram_chat_id,
             "\n".join(f"- {line}" for line in lines) or "No recent LifeHub context signals.",
         )
+    elif name == "/sources":
+        send_message(cfg.telegram_token, cfg.telegram_chat_id, render_sources())
+    elif name == "/data_gaps":
+        try:
+            profile = build_context_profile(cfg, cfg.fixture_weather_path)
+            text_out = render_data_gaps(profile)
+        except Exception as exc:
+            text_out = f"LifeHub data gaps: context profile unavailable ({exc})."
+        send_message(cfg.telegram_token, cfg.telegram_chat_id, text_out)
+    elif name in CAPTURE_COMMANDS:
+        try:
+            event = parse_capture_command(text)
+        except ValueError as exc:
+            send_message(cfg.telegram_token, cfg.telegram_chat_id, str(exc))
+            return
+        activity_log = capture_to_activity_log(event)
+        if activity_log:
+            try:
+                insert_activity_postgres(cfg.postgres_dsn, activity_log)
+                try:
+                    insert_activity_clickhouse(cfg.clickhouse_url, activity_log)
+                except Exception as exc:
+                    print(f"ClickHouse moto capture insert skipped: {exc}")
+            except Exception as exc:
+                print(f"Postgres moto capture insert skipped: {exc}")
+        send_message(cfg.telegram_token, cfg.telegram_chat_id, render_capture_ack(event))
     elif name in {"/done", "/skip", "/feedback"}:
         try:
             feedback = parse_feedback_command(text)
@@ -662,7 +761,7 @@ def handle_telegram_text(text: str, cfg) -> None:
         send_message(
             cfg.telegram_token,
             cfg.telegram_chat_id,
-            "Commands: /today, /review, /metrics, /spots, /signals, /week, /goals, /coach, /done, /skip, /log activity intensity mood fatigue result notes",
+            "Commands: /today, /review, /metrics, /spots, /signals, /sources, /data_gaps, /week, /goals, /coach, /done, /skip, /log activity intensity mood fatigue result notes, /sleep, /mood, /pain, /plan, /moto, /trade, /note",
         )
 
 
@@ -818,6 +917,37 @@ def render_metrics(
     return render_progress_scorecard(summary, decision_metrics, feedback_profile, preferences)
 
 
+def render_sources() -> str:
+    return "\n".join(
+        [
+            "LifeHub capture sources",
+            "- /sleep: recovery and sleep freshness",
+            "- /mood: wellbeing mood score",
+            "- /pain: wellbeing pain score and note",
+            "- /plan: daily planning intent",
+            "- /moto: moto lesson shorthand",
+            "- /trade: market/trading context note",
+            "- /note: general private context",
+            "- /log: detailed activity diary",
+        ]
+    )
+
+
+def render_data_gaps(profile) -> str:
+    confidence, gaps = extract_confidence_and_gaps(profile.context_summary)
+    lines = [
+        "LifeHub data gaps",
+        f"Profile confidence: {confidence}/100",
+        f"Readiness state: {profile.readiness_state}",
+    ]
+    if gaps:
+        lines.append("Open gaps:")
+        lines.extend(f"- {gap}" for gap in gaps)
+    else:
+        lines.append("Open gaps: none")
+    return "\n".join(lines)
+
+
 def fetch_signals_safe(cfg):
     try:
         return fetch_recent_signals_postgres(cfg.postgres_dsn)
@@ -891,6 +1021,19 @@ def build_parser() -> argparse.ArgumentParser:
     sleep.add_argument("--dt", default="", help="Landing partition date, defaults to UTC today")
     sleep.set_defaults(func=cmd_sleep_import)
 
+    local_file = sub.add_parser("local-file-import")
+    local_file.add_argument("path", type=Path)
+    local_file.add_argument("--kind", choices=["auto", *sorted(LOCAL_KINDS)], default="auto")
+    local_file.add_argument("--output-root", type=Path, default=Path("tmp/lake"))
+    local_file.add_argument("--dt", default="", help="Landing partition date, defaults to UTC today")
+    local_file.set_defaults(func=cmd_local_file_import)
+
+    inbox_scan = sub.add_parser("inbox-scan")
+    inbox_scan.add_argument("path", type=Path)
+    inbox_scan.add_argument("--output-root", type=Path, default=Path("tmp/lake"))
+    inbox_scan.add_argument("--dt", default="", help="Landing partition date, defaults to UTC today")
+    inbox_scan.set_defaults(func=cmd_inbox_scan)
+
     custom_source = sub.add_parser("custom-source-import")
     custom_source.add_argument("path", type=Path)
     custom_source.add_argument("--source-name", default="custom_life_events")
@@ -935,6 +1078,25 @@ def build_parser() -> argparse.ArgumentParser:
     metrics.add_argument("--send-telegram", action="store_true")
     metrics.set_defaults(func=cmd_metrics)
 
+    capture = sub.add_parser("capture")
+    capture.add_argument("text")
+    capture.add_argument("--output", type=Path, default=Path("tmp/lifehub/captures.jsonl"))
+    capture.add_argument("--write-postgres", action="store_true")
+    capture.add_argument("--write-clickhouse", action="store_true")
+    capture.set_defaults(func=cmd_capture)
+
+    sub.add_parser("sources").set_defaults(func=cmd_sources)
+    sub.add_parser("source-status").set_defaults(func=cmd_source_status)
+
+    data_gaps = sub.add_parser("data-gaps")
+    data_gaps.add_argument("--fixture", type=Path)
+    data_gaps.add_argument("--summary-fixture", type=Path)
+    data_gaps.add_argument("--feedback-fixture", type=Path)
+    data_gaps.add_argument("--metrics-fixture", type=Path)
+    data_gaps.add_argument("--signal-fixture", type=Path)
+    data_gaps.add_argument("--sleep-fixture", type=Path)
+    data_gaps.set_defaults(func=cmd_data_gaps)
+
     places = sub.add_parser("place-sync")
     places.add_argument("--source", choices=["auto", "overpass", "config"], default="auto")
     places.add_argument("--radius-m", type=int, default=12000)
@@ -952,7 +1114,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     github_signals = sub.add_parser("github-signal-import")
     github_signals.add_argument("--fixture", type=Path)
-    github_signals.add_argument("--repo", default=os.getenv("LIFEHUB_GITHUB_REPO", "karnaksp/data-forge"))
+    github_signals.add_argument("--repo", default=os.getenv("LIFEHUB_GITHUB_REPO", "karnaksp/life-data-hub"))
     github_signals.add_argument("--token", default=os.getenv("GITHUB_TOKEN", ""))
     github_signals.add_argument("--write-postgres", action="store_true")
     github_signals.add_argument("--write-clickhouse", action="store_true")

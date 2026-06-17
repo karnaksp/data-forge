@@ -1,0 +1,18 @@
+{
+  "items": [
+    {
+      "created_at": "2026-06-15T20:15:00+00:00",
+      "title": "Synthetic weekly reflection",
+      "summary": "Synthetic note body for importer testing.",
+      "tags": ["planning", "recovery", "moto"],
+      "mood": "focused"
+    },
+    {
+      "created_at": "2026-06-16T20:45:00+00:00",
+      "title": "Decision review",
+      "summary": "Short synthetic note about improving decisions.",
+      "tags": ["review", "trading"],
+      "mood": "neutral"
+    }
+  ]
+}

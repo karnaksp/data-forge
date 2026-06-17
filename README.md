@@ -40,6 +40,22 @@
 - **DataOps слой** - data contracts, catalog, expectations, validators, lineage и evidence.
 - **Retail CDC сценарий** - сохранен как инженерная лаборатория для Kafka/Debezium/ClickHouse/Trino.
 
+## Какие мои данные можно подключить
+
+Life Data Hub теперь проектируется как полный персональный source catalog, а не только weather + diary demo.
+
+| Область | Источники | Как хранится |
+| --- | --- | --- |
+| Daily life | Telegram diary, sleep, mood, pain, plans, calendar, moto lessons | raw local only; в lakehouse только summaries |
+| Sports | skate, snowboard, volleyball, gym, GPX/FIT/TCX activity files | route/session summaries без private coordinates |
+| Recovery | sleep CSV/JSON, future health exports | night/day-level metrics без raw device payload |
+| Projects | GitHub activity, learning notes, source freshness | public/context summaries and topic buckets |
+| Trading | market snapshots, watchlist, trade journal | hashed instruments and risk/result summaries |
+| Finance/location/communications | expenses, broad location areas, message metadata | planned Tier 3 summaries; no account data, exact addresses or message bodies |
+| Admin/security | documents and secrets inventory | planned pointer-only metadata, never raw payloads |
+
+Подробная карта: [docs/personal-data-sources.md](docs/personal-data-sources.md). Приватность: [docs/privacy-model.md](docs/privacy-model.md).
+
 ## Продуктовая ценность
 
 LifeHub помогает принимать маленькие ежедневные решения на основе данных:
@@ -219,6 +235,10 @@ PYTHONPATH=infra/lifehub python -m lifehub.cli source-onboard sleep_quality \
 - [docs/troubleshooting.md](docs/troubleshooting.md) - типовые проблемы;
 - [docs/guidelines.md](docs/guidelines.md) - стиль документации и изменений;
 - [docs/learning-path.md](docs/learning-path.md) - учебный маршрут по стеку.
+- [docs/personal-data-sources.md](docs/personal-data-sources.md) - полный каталог персональных источников;
+- [docs/privacy-model.md](docs/privacy-model.md) - local-first privacy policy;
+- [docs/source-onboarding-playbook.md](docs/source-onboarding-playbook.md) - как добавлять новый источник;
+- [docs/telegram-data-capture.md](docs/telegram-data-capture.md) - Telegram capture commands.
 
 ## Releases и packages
 

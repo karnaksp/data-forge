@@ -8,6 +8,8 @@ infra/airflow/logs/
 .env
 spark-warehouse/
 tmp/
+data/private/
+data/raw/
 *.code-workspace
 .DS_Store
 .idea/

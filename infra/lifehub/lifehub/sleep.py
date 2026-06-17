@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import csv
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -24,6 +25,9 @@ class SleepQualityEvent:
 
 
 def load_sleep_fixture(path: Path) -> list[dict[str, Any]]:
+    if path.suffix.lower() == ".csv":
+        with path.open(newline="", encoding="utf-8") as handle:
+            return [dict(row) for row in csv.DictReader(handle)]
     payload = json.loads(path.read_text(encoding="utf-8"))
     if isinstance(payload, dict) and isinstance(payload.get("nights"), list):
         rows = payload["nights"]
