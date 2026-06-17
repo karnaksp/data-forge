@@ -12,7 +12,23 @@
 
 ![Life Data Hub stack diagram](docs/assets/life-data-hub-stack.svg)
 
-Схема показывает, как разные классы источников проходят единый путь: public APIs, Telegram diary, локальные файлы и сигналы проектов попадают в ingestion layer, затем в Postgres, ClickHouse и lakehouse, обрабатываются Spark/Trino/dbt и управляются Airflow/Temporal/DataOps проверками. На выходе остаются не сырые данные, а продуктовые поверхности: Telegram digest, cockpit, evidence и lineage.
+Схема читается слева направо: источники превращаются в события, события сохраняются в raw/state слоях, затем Spark/Iceberg/Trino/dbt делают аналитические слои, Airflow/Temporal/DataOps контролируют выполнение, а продуктовый слой отдаёт Telegram digest, cockpit и ежедневное решение.
+
+Логотипы основного стека:
+
+![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white)
+![ClickHouse](https://img.shields.io/badge/ClickHouse-FFCC01?logo=clickhouse&logoColor=111111)
+![Apache Kafka](https://img.shields.io/badge/Apache%20Kafka-231F20?logo=apachekafka&logoColor=white)
+![Apache Spark](https://img.shields.io/badge/Apache%20Spark-E25A1C?logo=apachespark&logoColor=white)
+![Apache Iceberg](https://img.shields.io/badge/Apache%20Iceberg-0EA5E9?logo=apacheiceberg&logoColor=white)
+![Trino](https://img.shields.io/badge/Trino-DD5A6F?logo=trino&logoColor=white)
+![dbt](https://img.shields.io/badge/dbt-FF694B?logo=dbt&logoColor=white)
+![Apache Airflow](https://img.shields.io/badge/Apache%20Airflow-017CEE?logo=apacheairflow&logoColor=white)
+![Temporal](https://img.shields.io/badge/Temporal-141E33?logo=temporal&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
+![Telegram](https://img.shields.io/badge/Telegram-26A5E4?logo=telegram&logoColor=white)
+![GitHub](https://img.shields.io/badge/GitHub-181717?logo=github&logoColor=white)
 
 ## Что уже есть
 
