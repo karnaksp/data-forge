@@ -206,7 +206,7 @@ services:
     environment:
       LIFEHUB_POSTGRES_DSN: ${LIFEHUB_POSTGRES_DSN:-host=postgres port=5432 dbname=demo user=admin password=admin}
       LIFEHUB_CLICKHOUSE_URL: ${LIFEHUB_CLICKHOUSE_URL:-http://clickhouse:8123/?user=admin&password=admin}
-      LIFEHUB_GITHUB_REPO: ${LIFEHUB_GITHUB_REPO:-karnaksp/data-forge}
+      LIFEHUB_GITHUB_REPO: ${LIFEHUB_GITHUB_REPO:-karnaksp/life-data-hub}
       GITHUB_TOKEN: ${GITHUB_TOKEN:-}
     volumes:
       - .:/workspace:ro

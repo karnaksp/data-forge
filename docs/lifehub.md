@@ -1,6 +1,6 @@
 # LifeHub Sports and Wellbeing Digest
 
-LifeHub is a local only data product inside Data Forge. It keeps the retail CDC lab intact and adds a personal sports and wellbeing domain for Saint Petersburg outdoor readiness.
+LifeHub is a local only data product inside Life Data Hub. It keeps the retail CDC lab intact and adds a personal sports and wellbeing domain for Saint Petersburg outdoor readiness.
 
 ## Product goal
 

@@ -27,7 +27,7 @@ def build_event() -> dict:
             "runId": str(uuid.uuid4()),
             "facets": {
                 "dataForge": {
-                    "_producer": "https://github.com/karnaksp/data-forge",
+                    "_producer": "https://github.com/karnaksp/life-data-hub",
                     "_schemaURL": "https://openlineage.io/spec/facets/1-0-0/BaseFacet.json",
                     "domain": "lifehub",
                     "privacy": "local_only",
@@ -36,7 +36,7 @@ def build_event() -> dict:
             },
         },
         "job": {
-            "namespace": "data-forge.local",
+            "namespace": "life-data-hub.local",
             "name": "lifehub_daily_pipeline",
         },
         "inputs": [
