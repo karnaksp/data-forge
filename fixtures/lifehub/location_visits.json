@@ -1,0 +1,11 @@
+[
+  {
+    "occurred_at": "2026-06-16T16:20:00+00:00",
+    "place_bucket": "public_sport_area",
+    "movement_mode": "walk",
+    "precision_bucket": "coarse_place",
+    "city_bucket": "saint_petersburg",
+    "dwell_minutes": 55,
+    "distance_km": 3.1
+  }
+]

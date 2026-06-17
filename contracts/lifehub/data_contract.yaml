@@ -157,7 +157,6 @@ source_architecture:
       - location_area_summary
       - finance_transactions
       - data_source_runs
-    planned_connector_sources:
       - location_visits
       - health_metrics
       - communications_metadata
@@ -165,6 +164,7 @@ source_architecture:
       - tasks_and_projects
       - identity_documents
       - secrets_inventory
+    planned_connector_sources: []
 
 sources:
   open_meteo_forecast:
