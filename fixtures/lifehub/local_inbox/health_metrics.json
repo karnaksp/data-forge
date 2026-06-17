@@ -1,0 +1,9 @@
+[
+  {
+    "metric_date": "2026-06-16",
+    "metric_name": "steps",
+    "metric_value": 9200,
+    "unit": "count",
+    "source_device_class": "manual_summary"
+  }
+]

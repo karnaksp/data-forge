@@ -98,6 +98,13 @@ ACTIVE_FIXTURE_SOURCES = {
     "location_area_summary": ["fixtures/lifehub/location_area_summary.json"],
     "finance_transactions": ["fixtures/lifehub/finance_transactions_summary.json"],
     "data_source_runs": ["fixtures/lifehub/data_source_runs.json"],
+    "browser_and_app_usage": ["fixtures/lifehub/digital_activity.json"],
+    "tasks_and_projects": ["fixtures/lifehub/tasks_projects.json"],
+    "communications_metadata": ["fixtures/lifehub/communications_summary.json"],
+    "location_visits": ["fixtures/lifehub/location_visits.json"],
+    "health_metrics": ["fixtures/lifehub/health_metrics.json"],
+    "identity_documents": ["fixtures/lifehub/identity_pointers.json"],
+    "secrets_inventory": ["fixtures/lifehub/credential_rotation.json"],
 }
 
 REQUIRED_SOURCE_FIELDS = [

@@ -39,14 +39,14 @@ The registry is intentionally broader than the current runnable fixtures. Tier 1
 | `health_summary` | Tier 3 | Health | `private_health_summary` | Active local fixture | Daily aggregate recovery, load, and wellness summaries. |
 | `location_area_summary` | Tier 3 | Location | `private_location_summary` | Active local fixture | Broad area bucket, dwell minutes, movement mode, and precision bucket. |
 | `data_source_runs` | Tier 1 | DataOps | `derived_context` | Active validator output | Run status, freshness, record counts, quality flags, and missing source gaps. |
-| `browser_and_app_usage` | Tier 2 | Digital activity | `private_behavior_summary` | Planned | Category-duration buckets; no URLs, titles, or search queries. |
-| `tasks_and_projects` | Tier 2 | Productivity | `private_behavior_summary` | Planned | Status, priority, effort, and project buckets; no task text or client names. |
-| `location_visits` | Tier 3 | Location | `private_location_summary` | Planned | Coarse place buckets, dwell time, movement mode, precision bucket. |
-| `health_metrics` | Tier 3 | Health | `private_health_summary` | Planned | Daily metric summaries and device class, not raw device exports. |
+| `browser_and_app_usage` | Tier 2 | Digital activity | `private_behavior_summary` | Active local fixture | Category-duration buckets; no URLs, titles, or search queries. |
+| `tasks_and_projects` | Tier 2 | Productivity | `private_behavior_summary` | Active local fixture | Status, priority, effort, and project buckets; no task text or client names. |
+| `location_visits` | Tier 3 | Location | `private_location_summary` | Active local fixture | Coarse place buckets, dwell time, movement mode, precision bucket. |
+| `health_metrics` | Tier 3 | Health | `private_health_summary` | Active local fixture | Daily metric summaries and device class, not raw device exports. |
 | `finance_transactions` | Tier 3 | Finance | `private_finance_summary` | Active local fixture | Category, currency, amount bucket, and account bucket. |
-| `communications_metadata` | Tier 3 | Communications | `private_communications_summary` | Planned | Channel, direction, contact bucket, and counts only. |
-| `identity_documents` | Tier 4 | Identity | `private_identity_document` | Planned pointer-only | Document bucket, status, expiry month, reminder date, local pointer id. |
-| `secrets_inventory` | Tier 4 | Security | `secret_credential` | Planned pointer-only | Rotation due month, age bucket, vault pointer id; never secret material. |
+| `communications_metadata` | Tier 3 | Communications | `private_communications_summary` | Active local fixture | Channel, direction, contact bucket, and counts only. |
+| `identity_documents` | Tier 4 | Identity | `private_identity_document` | Active pointer-only fixture | Document bucket, status, expiry month, reminder bucket, local pointer bucket. |
+| `secrets_inventory` | Tier 4 | Security | `secret_credential` | Active pointer-only fixture | Rotation due month, age bucket, vault bucket; never secret material. |
 
 ## Universal Envelope
 

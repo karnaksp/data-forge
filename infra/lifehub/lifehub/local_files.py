@@ -30,6 +30,13 @@ LOCAL_KINDS = {
     "location_area_summary",
     "finance_transactions",
     "data_source_runs",
+    "browser_and_app_usage",
+    "tasks_and_projects",
+    "communications_metadata",
+    "location_visits",
+    "health_metrics",
+    "identity_documents",
+    "secrets_inventory",
 }
 
 
@@ -79,22 +86,36 @@ def detect_local_kind(path: Path) -> str:
         return "training_sessions"
     if "habit" in stem or "goal" in stem:
         return "habit_goals"
+    if "task" in stem or "todo" in stem or "productivity" in stem:
+        return "tasks_and_projects"
+    if "github" in stem:
+        return "github_project_activity"
     if "watchlist" in stem or "market" in stem:
         return "market_watchlist_snapshot"
-    if "github" in stem or "project" in stem:
-        return "github_project_activity"
     if "learning" in stem or "study" in stem:
         return "learning_activity"
     if "finance_event" in stem or "earnings" in stem:
         return "finance_event_calendar"
+    if "metric" in stem and "health" in stem:
+        return "health_metrics"
     if "health" in stem:
         return "health_summary"
+    if "visit" in stem:
+        return "location_visits"
     if "location" in stem or "area" in stem or "movement" in stem:
         return "location_area_summary"
     if "expense" in stem or "transaction" in stem or "finance" in stem:
         return "finance_transactions"
     if "source_run" in stem or "data_source" in stem or "freshness" in stem:
         return "data_source_runs"
+    if "browser" in stem or "app_usage" in stem or "screen_time" in stem or "digital" in stem:
+        return "browser_and_app_usage"
+    if "communication" in stem or "message" in stem or "notification" in stem:
+        return "communications_metadata"
+    if "identity" in stem or "document" in stem:
+        return "identity_documents"
+    if "credential" in stem or "rotation" in stem or "vault" in stem:
+        return "secrets_inventory"
     if "note" in name or "summary" in name:
         return "personal_notes"
     return detect_json_kind(path) if suffix == ".json" else ""
@@ -133,6 +154,20 @@ def detect_json_kind(path: Path) -> str:
         return "finance_transactions"
     if {"source_name", "status", "freshness_minutes"} <= keys:
         return "data_source_runs"
+    if {"activity_date", "category", "duration_minutes", "device_bucket"} <= keys:
+        return "browser_and_app_usage"
+    if {"updated_at", "project_bucket", "status", "priority_bucket"} <= keys:
+        return "tasks_and_projects"
+    if {"occurred_at", "channel", "direction", "contact_bucket"} <= keys:
+        return "communications_metadata"
+    if {"place_bucket", "dwell_minutes", "movement_mode"} <= keys:
+        return "location_visits"
+    if {"metric_date", "metric_name", "metric_value", "source_device_class"} <= keys:
+        return "health_metrics"
+    if {"document_bucket", "status", "expiry_month", "pointer_bucket"} <= keys:
+        return "identity_documents"
+    if {"credential_bucket", "rotation_due_month", "age_bucket", "vault_bucket"} <= keys:
+        return "secrets_inventory"
     if keys & {"summary", "title", "body", "tags"}:
         return "personal_notes"
     return ""
@@ -464,6 +499,73 @@ SUMMARY_IMPORTERS = {
         "metrics": ("freshness_minutes", "row_count", "error_count", "duration_seconds"),
         "labels": ("source_name", "status", "quality_state"),
     },
+    "browser_and_app_usage": {
+        "event_type": "digital_activity_summary",
+        "event_time_fields": ("activity_date", "date"),
+        "privacy_class": "private_behavior_summary",
+        "source_tier": "tier_2_personal_context",
+        "source_type": "local_browser_or_screen_time_export",
+        "metrics": ("duration_minutes", "session_count"),
+        "labels": ("category", "device_bucket", "focus_state"),
+    },
+    "tasks_and_projects": {
+        "event_type": "task_project_summary",
+        "event_time_fields": ("updated_at", "date"),
+        "privacy_class": "private_behavior_summary",
+        "source_tier": "tier_2_personal_context",
+        "source_type": "local_task_export",
+        "metrics": ("task_count", "done_count", "effort_points"),
+        "labels": ("project_bucket", "status", "priority_bucket", "effort_bucket"),
+    },
+    "communications_metadata": {
+        "event_type": "communications_metadata_summary",
+        "event_time_fields": ("occurred_at", "date"),
+        "privacy_class": "private_communications_summary",
+        "source_tier": "tier_3_sensitive_life",
+        "source_type": "local_mail_message_or_call_export",
+        "metrics": ("interaction_count", "duration_minutes"),
+        "labels": ("channel", "direction", "contact_bucket", "response_bucket"),
+    },
+    "location_visits": {
+        "event_type": "location_visit_summary",
+        "event_time_fields": ("occurred_at", "date"),
+        "privacy_class": "private_location_summary",
+        "source_tier": "tier_3_sensitive_life",
+        "source_type": "local_location_history",
+        "metrics": ("dwell_minutes", "distance_km"),
+        "labels": ("place_bucket", "movement_mode", "precision_bucket", "city_bucket"),
+    },
+    "health_metrics": {
+        "event_type": "health_metric_summary",
+        "event_time_fields": ("metric_date", "date"),
+        "privacy_class": "private_health_summary",
+        "source_tier": "tier_3_sensitive_life",
+        "source_type": "wearable_or_health_export",
+        "metrics": ("metric_value",),
+        "labels": ("metric_name", "unit", "source_device_class"),
+    },
+    "identity_documents": {
+        "event_type": "identity_document_pointer",
+        "event_time_fields": ("indexed_at", "date"),
+        "privacy_class": "private_identity_document",
+        "source_tier": "tier_4_private_core",
+        "source_type": "local_document_index",
+        "metrics": ("days_until_expiry",),
+        "labels": ("document_bucket", "status", "expiry_month", "reminder_bucket", "pointer_bucket"),
+        "raw_policy": "no_shared_bronze_raw",
+        "local_policy": "explicit_opt_in_pointer_only",
+    },
+    "secrets_inventory": {
+        "event_type": "credential_rotation_pointer",
+        "event_time_fields": ("indexed_at", "date"),
+        "privacy_class": "secret_credential",
+        "source_tier": "tier_4_private_core",
+        "source_type": "local_secret_manager_index",
+        "metrics": ("age_days",),
+        "labels": ("credential_bucket", "rotation_due_month", "age_bucket", "vault_bucket", "status"),
+        "raw_policy": "no_shared_bronze_raw",
+        "local_policy": "explicit_opt_in_pointer_only",
+    },
 }
 
 
@@ -499,8 +601,11 @@ def summary_events(kind: str, rows: list[dict[str, Any]], *, source_file: str) -
                 privacy_class=config["privacy_class"],
                 source_tier=config["source_tier"],
                 source_type=config["source_type"],
-                raw_policy="local_raw_only" if kind != "market_watchlist_snapshot" else "public_fixture_ok",
-                local_policy="summarized_landing_only",
+                raw_policy=str(
+                    config.get("raw_policy")
+                    or ("public_fixture_ok" if kind == "market_watchlist_snapshot" else "local_raw_only")
+                ),
+                local_policy=str(config.get("local_policy") or "summarized_landing_only"),
                 payload_summary={
                     "source_file_hash": stable_hash(source_file),
                     "row_number": index,

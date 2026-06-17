@@ -1,0 +1,11 @@
+[
+  {
+    "occurred_at": "2026-06-16T18:30:00+00:00",
+    "channel": "messenger",
+    "direction": "inbound",
+    "contact_bucket": "training_group",
+    "response_bucket": "same_day",
+    "interaction_count": 4,
+    "duration_minutes": 12
+  }
+]

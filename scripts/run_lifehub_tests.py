@@ -446,6 +446,13 @@ class LocalSummaryImportTests(unittest.TestCase):
             "location_area_summary.json": "location_area_summary",
             "finance_transactions_summary.json": "finance_transactions",
             "data_source_runs.json": "data_source_runs",
+            "digital_activity.json": "browser_and_app_usage",
+            "tasks_projects.json": "tasks_and_projects",
+            "communications_summary.json": "communications_metadata",
+            "location_visits.json": "location_visits",
+            "health_metrics.json": "health_metrics",
+            "identity_pointers.json": "identity_documents",
+            "credential_rotation.json": "secrets_inventory",
         }
         for fixture_name, source_name in cases.items():
             path = FIXTURES / fixture_name
@@ -477,6 +484,13 @@ class LocalSummaryImportTests(unittest.TestCase):
             "location_area_summary",
             "finance_transactions",
             "data_source_runs",
+            "browser_and_app_usage",
+            "tasks_and_projects",
+            "communications_metadata",
+            "location_visits",
+            "health_metrics",
+            "identity_documents",
+            "secrets_inventory",
         }:
             self.assertIn(source_name, observed)
 

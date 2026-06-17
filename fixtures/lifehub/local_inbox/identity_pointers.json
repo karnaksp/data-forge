@@ -1,0 +1,11 @@
+[
+  {
+    "indexed_at": "2026-06-16T09:00:00+00:00",
+    "document_bucket": "driver_license_training",
+    "status": "in_progress",
+    "expiry_month": "2026-12",
+    "reminder_bucket": "monthly_review",
+    "pointer_bucket": "local_vault_reference",
+    "days_until_expiry": 180
+  }
+]

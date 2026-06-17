@@ -1,0 +1,12 @@
+[
+  {
+    "updated_at": "2026-06-16T21:30:00+00:00",
+    "project_bucket": "life_data_hub",
+    "status": "in_progress",
+    "priority_bucket": "high",
+    "effort_bucket": "medium",
+    "task_count": 5,
+    "done_count": 2,
+    "effort_points": 8
+  }
+]

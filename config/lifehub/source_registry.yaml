@@ -499,7 +499,7 @@ sources:
     privacy_class: private_location_summary
     raw_policy: local_raw_only
     local_policy: summarized_landing_only
-    producer: planned-lifehub-location-import
+    producer: lifehub local-file-import
     landing_path: s3a://iceberg/lifehub/landing/location_visits/dt={dt}/events.jsonl
     bronze_table: iceberg.bronze.lifehub_location_visit_events
     silver_table: iceberg.silver.lifehub_location_visits
@@ -518,7 +518,7 @@ sources:
     privacy_class: private_health_summary
     raw_policy: local_raw_only
     local_policy: summarized_landing_only
-    producer: planned-lifehub-health-import
+    producer: lifehub local-file-import
     landing_path: s3a://iceberg/lifehub/landing/health_metrics/dt={dt}/events.jsonl
     bronze_table: iceberg.bronze.lifehub_health_metric_events
     silver_table: iceberg.silver.lifehub_health_metrics
@@ -556,7 +556,7 @@ sources:
     privacy_class: private_communications_summary
     raw_policy: local_raw_only
     local_policy: summarized_landing_only
-    producer: planned-lifehub-communications-import
+    producer: lifehub local-file-import
     landing_path: s3a://iceberg/lifehub/landing/communications_metadata/dt={dt}/events.jsonl
     bronze_table: iceberg.bronze.lifehub_communications_metadata_events
     silver_table: iceberg.silver.lifehub_communications_daily
@@ -575,7 +575,7 @@ sources:
     privacy_class: private_behavior_summary
     raw_policy: local_raw_only
     local_policy: summarized_landing_only
-    producer: planned-lifehub-digital-activity-import
+    producer: lifehub local-file-import
     landing_path: s3a://iceberg/lifehub/landing/browser_and_app_usage/dt={dt}/events.jsonl
     bronze_table: iceberg.bronze.lifehub_browser_app_usage_events
     silver_table: iceberg.silver.lifehub_digital_activity_daily
@@ -594,7 +594,7 @@ sources:
     privacy_class: private_behavior_summary
     raw_policy: local_raw_only
     local_policy: summarized_landing_only
-    producer: planned-lifehub-task-import
+    producer: lifehub local-file-import
     landing_path: s3a://iceberg/lifehub/landing/tasks_and_projects/dt={dt}/events.jsonl
     bronze_table: iceberg.bronze.lifehub_task_project_events
     silver_table: iceberg.silver.lifehub_task_projects
@@ -613,7 +613,7 @@ sources:
     privacy_class: private_identity_document
     raw_policy: no_shared_bronze_raw
     local_policy: explicit_opt_in_pointer_only
-    producer: planned-lifehub-document-index
+    producer: lifehub local-file-import
     landing_path: s3a://iceberg/lifehub/landing/identity_documents/dt={dt}/events.jsonl
     bronze_table: iceberg.bronze.lifehub_identity_document_events
     silver_table: iceberg.silver.lifehub_identity_document_index
@@ -621,9 +621,9 @@ sources:
     pii: true
     commit_policy: never commit scans, document numbers, legal text or irreversible identifiers; store local pointers and expiry buckets only
     onboarding_contract:
-      required_fields: [document_bucket, status, expiry_month, reminder_date, local_pointer_id, indexed_at]
+      required_fields: [document_bucket, status, expiry_month, pointer_bucket, indexed_at]
       event_time_field: indexed_at
-      idempotency_key: [document_bucket, local_pointer_id]
+      idempotency_key: [document_bucket, pointer_bucket]
 
   secrets_inventory:
     tier: tier_4_private_core
@@ -632,7 +632,7 @@ sources:
     privacy_class: secret_credential
     raw_policy: no_shared_bronze_raw
     local_policy: explicit_opt_in_pointer_only
-    producer: planned-lifehub-secret-index
+    producer: lifehub local-file-import
     landing_path: s3a://iceberg/lifehub/landing/secrets_inventory/dt={dt}/events.jsonl
     bronze_table: iceberg.bronze.lifehub_secret_inventory_events
     silver_table: iceberg.silver.lifehub_secret_inventory
@@ -640,9 +640,9 @@ sources:
     pii: true
     commit_policy: never commit secret values, token names, URLs, usernames or vault exports; land rotation metadata only
     onboarding_contract:
-      required_fields: [secret_bucket, rotation_due_month, age_bucket, vault_pointer_id, indexed_at]
+      required_fields: [credential_bucket, rotation_due_month, age_bucket, vault_bucket, indexed_at]
       event_time_field: indexed_at
-      idempotency_key: [secret_bucket, vault_pointer_id]
+      idempotency_key: [credential_bucket, vault_bucket]
 
 new_source_template:
   steps:
