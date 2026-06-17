@@ -1,0 +1,14 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//LifeHub Synthetic Fixtures//EN
+BEGIN:VEVENT
+UID:synthetic-inbox-calendar-1@example.test
+DTSTART:20260615T080000Z
+DTEND:20260615T083000Z
+SUMMARY:Synthetic planning block
+LOCATION:Public area label
+DESCRIPTION:Synthetic calendar fixture for importer testing.
+ATTENDEE:mailto:person@example.test
+STATUS:CONFIRMED
+END:VEVENT
+END:VCALENDAR

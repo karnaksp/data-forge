@@ -3,6 +3,58 @@ owner: local-data-engineering
 privacy: local_only
 default_lake_bucket: iceberg
 default_checkpoint_bucket: checkpoints
+source_architecture:
+  goal: full personal data coverage with privacy-safe local-first ingestion
+  tier_policy:
+    tier_1_foundation:
+      description: low-risk public, synthetic, derived, or coarse personal summaries used by the MVP today
+      default_raw_policy: commit synthetic fixtures and public API examples only
+      default_local_policy: may land privacy-safe envelopes in local lakehouse
+    tier_2_personal_context:
+      description: personal context needed for useful recommendations but safe after summarization
+      default_raw_policy: keep raw exports local; land redacted or aggregate records only
+      default_local_policy: local lakehouse allowed after minimization
+    tier_3_sensitive_life:
+      description: health, finance, location, communications, identity, or relationship data
+      default_raw_policy: raw exports never committed and never copied into public evidence
+      default_local_policy: local encrypted raw vault only; analytics use summaries or derived features
+    tier_4_private_core:
+      description: secrets, credentials, legal records, intimate notes, private media, and irreversible identifiers
+      default_raw_policy: do not ingest raw payloads into shared bronze; store pointers or user-approved derived facts only
+      default_local_policy: explicit opt-in per source; redaction review required before any lake export
+  privacy_classes:
+    public_context: public weather, map, market, or open-source context without user identifiers
+    derived_context: model, scoring, weekly, or daily aggregates that do not expose raw personal rows
+    private_behavior_summary: activity, habit, preference, and feedback summaries without free text
+    private_location_summary: coarse route, visit, commute, or geofence summaries without home/work addresses
+    private_health_summary: sleep, recovery, nutrition, medication, and biometric summaries without raw device exports
+    private_finance_summary: balances, spending categories, broker snapshots, and budget aggregates without account numbers
+    private_communications_summary: message, call, mail, and notification metadata summaries without content bodies
+    private_identity_document: identity, legal, tax, insurance, and official records; raw payloads are tier_4 only
+    secret_credential: tokens, passwords, API keys, chat ids, cookies, private keys; never part of event payloads
+  universal_envelope_fields:
+    - lake_version
+    - source_name
+    - source_tier
+    - source_type
+    - event_type
+    - event_time
+    - ingested_at
+    - privacy_class
+    - consent_scope
+    - subject_id
+    - schema_version
+    - idempotency_key
+    - provenance
+    - raw_policy
+    - local_policy
+    - payload
+  raw_local_policies:
+    public_fixture_ok: synthetic fixtures and public API examples may be committed
+    local_raw_only: real raw exports stay on ignored local paths outside git
+    summarized_landing_only: landing files contain summaries, redacted metrics, or derived facts only
+    no_shared_bronze_raw: source may not write raw payloads to shared bronze
+    secrets_forbidden: credentials, tokens, chat ids, cookies, and private keys are forbidden in payloads
 medallion_layers:
   landing:
     purpose: raw source-shaped files before table ingestion
@@ -21,8 +73,12 @@ medallion_layers:
 
 sources:
   weather_forecast:
+    tier: tier_1_foundation
     domain: weather
     source_type: public_api
+    privacy_class: public_context
+    raw_policy: public_fixture_ok
+    local_policy: summarized_landing_only
     producer: lifehub-weather-ingest
     landing_path: s3a://iceberg/lifehub/landing/weather_forecast/dt={dt}/events.jsonl
     bronze_table: iceberg.bronze.lifehub_weather_forecast_events
@@ -35,8 +91,12 @@ sources:
       idempotency_key: [location_id, forecast_time, fetched_at]
 
   activity_diary:
+    tier: tier_2_personal_context
     domain: wellbeing
     source_type: manual_event_log
+    privacy_class: private_behavior_summary
+    raw_policy: local_raw_only
+    local_policy: summarized_landing_only
     producer: lifehub-telegram-bot
     landing_path: s3a://iceberg/lifehub/landing/activity_diary/dt={dt}/events.jsonl
     bronze_table: iceberg.bronze.lifehub_activity_diary_events
@@ -50,8 +110,12 @@ sources:
       idempotency_key: [activity_type, logged_at]
 
   activity_files:
+    tier: tier_2_personal_context
     domain: sports
     source_type: local_file_import
+    privacy_class: private_location_summary
+    raw_policy: local_raw_only
+    local_policy: summarized_landing_only
     producer: lifehub activity-file-import
     landing_path: s3a://iceberg/lifehub/landing/activity_files/dt={dt}/events.jsonl
     bronze_table: iceberg.bronze.lifehub_activity_file_events
@@ -66,8 +130,12 @@ sources:
       idempotency_key: [source_file, started_at]
 
   decision_feedback:
+    tier: tier_1_foundation
     domain: decision_quality
     source_type: user_feedback
+    privacy_class: private_behavior_summary
+    raw_policy: summarized_landing_only
+    local_policy: summarized_landing_only
     producer: lifehub-telegram-bot
     landing_path: s3a://iceberg/lifehub/landing/decision_feedback/dt={dt}/events.jsonl
     bronze_table: iceberg.bronze.lifehub_decision_feedback_events
@@ -81,8 +149,12 @@ sources:
       idempotency_key: [activity, action, created_at]
 
   context_signals:
+    tier: tier_1_foundation
     domain: context
     source_type: multi_source_signal
+    privacy_class: public_context
+    raw_policy: public_fixture_ok
+    local_policy: summarized_landing_only
     producer: lifehub-signal-import
     landing_path: s3a://iceberg/lifehub/landing/context_signals/dt={dt}/events.jsonl
     bronze_table: iceberg.bronze.lifehub_context_signal_events
@@ -95,8 +167,12 @@ sources:
       idempotency_key: [signal_id]
 
   daily_context_profile:
+    tier: tier_1_foundation
     domain: decision_intelligence
     source_type: derived_profile
+    privacy_class: derived_context
+    raw_policy: summarized_landing_only
+    local_policy: summarized_landing_only
     producer: lifehub-score context-profile
     landing_path: s3a://iceberg/lifehub/landing/daily_context_profile/dt={dt}/events.jsonl
     bronze_table: iceberg.bronze.lifehub_daily_context_profile_events
@@ -110,8 +186,12 @@ sources:
       idempotency_key: [profile_date, timezone]
 
   sleep_quality:
+    tier: tier_2_personal_context
     domain: recovery
     source_type: local_json_event
+    privacy_class: private_health_summary
+    raw_policy: local_raw_only
+    local_policy: summarized_landing_only
     producer: lifehub sleep-import
     landing_path: s3a://iceberg/lifehub/landing/sleep_quality/dt={dt}/events.jsonl
     bronze_table: iceberg.bronze.lifehub_sleep_quality_events
@@ -126,8 +206,12 @@ sources:
       idempotency_key: [source, woke_at]
 
   custom_life_events:
+    tier: tier_2_personal_context
     domain: extensibility
     source_type: local_json_event
+    privacy_class: private_behavior_summary
+    raw_policy: local_raw_only
+    local_policy: summarized_landing_only
     producer: lifehub custom-source-import
     landing_path: s3a://iceberg/lifehub/landing/custom_life_events/dt={dt}/events.jsonl
     bronze_table: iceberg.bronze.lifehub_custom_life_event_events
@@ -140,6 +224,405 @@ sources:
       required_fields: [occurred_at, domain, metric_name, metric_value]
       event_time_field: occurred_at
       idempotency_key: [domain, metric_name, occurred_at]
+
+  calendar_events:
+    tier: tier_2_personal_context
+    domain: schedule
+    source_type: local_calendar_export
+    privacy_class: private_behavior_summary
+    raw_policy: local_raw_only
+    local_policy: summarized_landing_only
+    producer: lifehub local-file-import
+    landing_path: s3a://iceberg/lifehub/landing/calendar_events/dt={dt}/events.jsonl
+    bronze_table: iceberg.bronze.lifehub_calendar_event_events
+    silver_table: iceberg.silver.lifehub_calendar_events
+    consumers: [daily_context_profile, weekly_review, focus_capacity]
+    pii: true
+    commit_policy: keep ICS/CalDAV exports local; land busy windows, tags and coarse commitments only
+    onboarding_contract:
+      required_fields: [event_time, duration_minutes, calendar_bucket, commitment_type, imported_at]
+      event_time_field: event_time
+      idempotency_key: [calendar_bucket, event_time, duration_minutes]
+
+  moto_learning_log:
+    tier: tier_2_personal_context
+    domain: moto
+    source_type: local_csv_json_import
+    privacy_class: private_behavior_summary
+    raw_policy: local_raw_only
+    local_policy: summarized_landing_only
+    producer: lifehub local-file-import
+    landing_path: s3a://iceberg/lifehub/landing/moto_learning_log/dt={dt}/events.jsonl
+    bronze_table: iceberg.bronze.lifehub_moto_learning_log_events
+    silver_table: iceberg.silver.lifehub_moto_learning_log
+    consumers: [daily_context_profile, weekly_review, moto_progress]
+    pii: true
+    commit_policy: keep raw lesson notes local; land topic, practice minutes, confidence and hashed course labels only
+    onboarding_contract:
+      required_fields: [occurred_at, topic, practice_minutes, imported_at]
+      event_time_field: occurred_at
+      idempotency_key: [occurred_at, topic, source_file]
+
+  trade_journal_summary:
+    tier: tier_3_sensitive_life
+    domain: trading
+    source_type: local_trade_journal_export
+    privacy_class: private_finance_summary
+    raw_policy: local_raw_only
+    local_policy: summarized_landing_only
+    producer: lifehub local-file-import
+    landing_path: s3a://iceberg/lifehub/landing/trade_journal_summary/dt={dt}/events.jsonl
+    bronze_table: iceberg.bronze.lifehub_trade_journal_summary_events
+    silver_table: iceberg.silver.lifehub_trade_journal_summary
+    consumers: [trading_context, daily_context_profile, risk_review]
+    pii: true
+    commit_policy: never commit broker exports, account ids, raw symbols or trade notes; land hashes and aggregate risk metrics only
+    onboarding_contract:
+      required_fields: [occurred_at, asset_class, result, imported_at]
+      event_time_field: occurred_at
+      idempotency_key: [occurred_at, instrument_hash, setup_hash]
+
+  personal_notes_summary:
+    tier: tier_2_personal_context
+    domain: notes
+    source_type: local_markdown_json_summary
+    privacy_class: private_behavior_summary
+    raw_policy: local_raw_only
+    local_policy: summarized_landing_only
+    producer: lifehub local-file-import
+    landing_path: s3a://iceberg/lifehub/landing/personal_notes_summary/dt={dt}/events.jsonl
+    bronze_table: iceberg.bronze.lifehub_personal_notes_summary_events
+    silver_table: iceberg.silver.lifehub_personal_notes_summary
+    consumers: [weekly_review, learning_activity, daily_context_profile]
+    pii: true
+    commit_policy: keep raw note text local; land hashes, word counts, tags and coarse mood/category only
+    onboarding_contract:
+      required_fields: [occurred_at, title_hash, summary_hash, imported_at]
+      event_time_field: occurred_at
+      idempotency_key: [occurred_at, title_hash, summary_hash]
+
+  training_sessions:
+    tier: tier_2_personal_context
+    domain: sports
+    source_type: derived_training_session
+    privacy_class: private_behavior_summary
+    raw_policy: local_raw_only
+    local_policy: summarized_landing_only
+    producer: planned-lifehub-training-session-mart
+    landing_path: s3a://iceberg/lifehub/landing/training_sessions/dt={dt}/events.jsonl
+    bronze_table: iceberg.bronze.lifehub_training_session_events
+    silver_table: iceberg.silver.lifehub_training_sessions
+    consumers: [training_load, weekly_review, daily_context_profile]
+    pii: true
+    commit_policy: derive from diary and activity files; no raw notes or precise routes
+    onboarding_contract:
+      required_fields: [occurred_at, activity_type, duration_minutes, load_score, imported_at]
+      event_time_field: occurred_at
+      idempotency_key: [occurred_at, activity_type]
+
+  habit_goals:
+    tier: tier_2_personal_context
+    domain: habits
+    source_type: local_config_and_manual_events
+    privacy_class: private_behavior_summary
+    raw_policy: local_raw_only
+    local_policy: summarized_landing_only
+    producer: planned-lifehub-habit-goal-import
+    landing_path: s3a://iceberg/lifehub/landing/habit_goals/dt={dt}/events.jsonl
+    bronze_table: iceberg.bronze.lifehub_habit_goal_events
+    silver_table: iceberg.silver.lifehub_habit_goals
+    consumers: [weekly_review, goal_progress, daily_context_profile]
+    pii: true
+    commit_policy: land target categories and progress only; no raw private goal notes
+    onboarding_contract:
+      required_fields: [updated_at, goal_bucket, target_count, done_count, imported_at]
+      event_time_field: updated_at
+      idempotency_key: [updated_at, goal_bucket]
+
+  market_watchlist_snapshot:
+    tier: tier_1_foundation
+    domain: market
+    source_type: market_data_api
+    privacy_class: public_context
+    raw_policy: public_fixture_ok
+    local_policy: summarized_landing_only
+    producer: planned-lifehub-market-watchlist-import
+    landing_path: s3a://iceberg/lifehub/landing/market_watchlist_snapshot/dt={dt}/events.jsonl
+    bronze_table: iceberg.bronze.lifehub_market_watchlist_snapshot_events
+    silver_table: iceberg.silver.lifehub_market_watchlist_snapshot
+    consumers: [trading_context, daily_context_profile]
+    pii: false
+    commit_policy: fixture symbols are public examples; real personal watchlists stay local if sensitive
+    onboarding_contract:
+      required_fields: [observed_at, symbol_bucket, volatility_bucket, direction, imported_at]
+      event_time_field: observed_at
+      idempotency_key: [observed_at, symbol_bucket]
+
+  github_project_activity:
+    tier: tier_1_foundation
+    domain: github
+    source_type: public_api
+    privacy_class: public_context
+    raw_policy: public_fixture_ok
+    local_policy: summarized_landing_only
+    producer: planned-lifehub-github-project-import
+    landing_path: s3a://iceberg/lifehub/landing/github_project_activity/dt={dt}/events.jsonl
+    bronze_table: iceberg.bronze.lifehub_github_project_activity_events
+    silver_table: iceberg.silver.lifehub_github_project_activity
+    consumers: [project_focus, weekly_review, daily_context_profile]
+    pii: false
+    commit_policy: public repo metadata only by default; private repo details require local-only token policy
+    onboarding_contract:
+      required_fields: [observed_at, repo_bucket, activity_count, focus_bucket, imported_at]
+      event_time_field: observed_at
+      idempotency_key: [observed_at, repo_bucket]
+
+  learning_activity:
+    tier: tier_2_personal_context
+    domain: learning
+    source_type: local_notes_or_project_summary
+    privacy_class: private_behavior_summary
+    raw_policy: local_raw_only
+    local_policy: summarized_landing_only
+    producer: planned-lifehub-learning-import
+    landing_path: s3a://iceberg/lifehub/landing/learning_activity/dt={dt}/events.jsonl
+    bronze_table: iceberg.bronze.lifehub_learning_activity_events
+    silver_table: iceberg.silver.lifehub_learning_activity
+    consumers: [career_profile, weekly_review, daily_context_profile]
+    pii: true
+    commit_policy: land topic buckets, duration and progress only; raw notes stay local
+    onboarding_contract:
+      required_fields: [occurred_at, topic_bucket, duration_minutes, progress_state, imported_at]
+      event_time_field: occurred_at
+      idempotency_key: [occurred_at, topic_bucket]
+
+  finance_event_calendar:
+    tier: tier_2_personal_context
+    domain: finance
+    source_type: local_calendar_or_public_finance_events
+    privacy_class: private_finance_summary
+    raw_policy: local_raw_only
+    local_policy: summarized_landing_only
+    producer: planned-lifehub-finance-calendar-import
+    landing_path: s3a://iceberg/lifehub/landing/finance_event_calendar/dt={dt}/events.jsonl
+    bronze_table: iceberg.bronze.lifehub_finance_event_calendar_events
+    silver_table: iceberg.silver.lifehub_finance_event_calendar
+    consumers: [trading_context, monthly_review, daily_context_profile]
+    pii: true
+    commit_policy: land event buckets and dates only; no broker account or private position identifiers
+    onboarding_contract:
+      required_fields: [event_date, event_bucket, urgency, imported_at]
+      event_time_field: event_date
+      idempotency_key: [event_date, event_bucket]
+
+  health_summary:
+    tier: tier_3_sensitive_life
+    domain: health
+    source_type: wearable_or_health_export
+    privacy_class: private_health_summary
+    raw_policy: local_raw_only
+    local_policy: summarized_landing_only
+    producer: planned-lifehub-health-summary-import
+    landing_path: s3a://iceberg/lifehub/landing/health_summary/dt={dt}/events.jsonl
+    bronze_table: iceberg.bronze.lifehub_health_summary_events
+    silver_table: iceberg.silver.lifehub_health_summary
+    consumers: [recovery_readiness, daily_context_profile, training_consistency]
+    pii: true
+    commit_policy: raw Apple Health or Google Fit exports stay local; land daily summary metrics only
+    onboarding_contract:
+      required_fields: [metric_date, metric_name, metric_value, unit, imported_at]
+      event_time_field: metric_date
+      idempotency_key: [metric_date, metric_name]
+
+  location_area_summary:
+    tier: tier_3_sensitive_life
+    domain: location
+    source_type: local_location_history
+    privacy_class: private_location_summary
+    raw_policy: local_raw_only
+    local_policy: summarized_landing_only
+    producer: planned-lifehub-location-area-import
+    landing_path: s3a://iceberg/lifehub/landing/location_area_summary/dt={dt}/events.jsonl
+    bronze_table: iceberg.bronze.lifehub_location_area_summary_events
+    silver_table: iceberg.silver.lifehub_location_area_summary
+    consumers: [routine_detection, commute_load, daily_context_profile]
+    pii: true
+    commit_policy: never commit raw GPS history, home/work addresses or exact private coordinates
+    onboarding_contract:
+      required_fields: [occurred_at, area_bucket, dwell_minutes, movement_mode, imported_at]
+      event_time_field: occurred_at
+      idempotency_key: [occurred_at, area_bucket, dwell_minutes]
+
+  data_source_runs:
+    tier: tier_1_foundation
+    domain: dataops
+    source_type: pipeline_observability
+    privacy_class: derived_context
+    raw_policy: public_fixture_ok
+    local_policy: summarized_landing_only
+    producer: planned-lifehub-source-status
+    landing_path: s3a://iceberg/lifehub/landing/data_source_runs/dt={dt}/events.jsonl
+    bronze_table: iceberg.bronze.lifehub_data_source_run_events
+    silver_table: iceberg.silver.lifehub_data_source_runs
+    consumers: [source_freshness, data_gaps, daily_context_profile]
+    pii: false
+    commit_policy: evidence may include source counts, freshness and quality flags only
+    onboarding_contract:
+      required_fields: [run_at, source_name, status, row_count, imported_at]
+      event_time_field: run_at
+      idempotency_key: [run_at, source_name]
+
+  location_visits:
+    tier: tier_3_sensitive_life
+    domain: location
+    source_type: local_location_history
+    privacy_class: private_location_summary
+    raw_policy: local_raw_only
+    local_policy: summarized_landing_only
+    producer: planned-lifehub-location-import
+    landing_path: s3a://iceberg/lifehub/landing/location_visits/dt={dt}/events.jsonl
+    bronze_table: iceberg.bronze.lifehub_location_visit_events
+    silver_table: iceberg.silver.lifehub_location_visits
+    consumers: [routine_detection, commute_load, daily_context_profile]
+    pii: true
+    commit_policy: never commit raw GPS history, home/work addresses or exact private coordinates
+    onboarding_contract:
+      required_fields: [occurred_at, place_bucket, dwell_minutes, movement_mode, precision_bucket, imported_at]
+      event_time_field: occurred_at
+      idempotency_key: [place_bucket, occurred_at, dwell_minutes]
+
+  health_metrics:
+    tier: tier_3_sensitive_life
+    domain: health
+    source_type: wearable_or_health_export
+    privacy_class: private_health_summary
+    raw_policy: local_raw_only
+    local_policy: summarized_landing_only
+    producer: planned-lifehub-health-import
+    landing_path: s3a://iceberg/lifehub/landing/health_metrics/dt={dt}/events.jsonl
+    bronze_table: iceberg.bronze.lifehub_health_metric_events
+    silver_table: iceberg.silver.lifehub_health_metrics
+    consumers: [recovery_readiness, daily_context_profile, training_consistency]
+    pii: true
+    commit_policy: raw health exports and device payloads stay local; land daily metric summaries only
+    onboarding_contract:
+      required_fields: [metric_date, metric_name, metric_value, unit, source_device_class, imported_at]
+      event_time_field: metric_date
+      idempotency_key: [metric_date, metric_name, source_device_class]
+
+  finance_transactions:
+    tier: tier_3_sensitive_life
+    domain: finance
+    source_type: local_bank_or_budget_export
+    privacy_class: private_finance_summary
+    raw_policy: local_raw_only
+    local_policy: summarized_landing_only
+    producer: planned-lifehub-finance-import
+    landing_path: s3a://iceberg/lifehub/landing/finance_transactions/dt={dt}/events.jsonl
+    bronze_table: iceberg.bronze.lifehub_finance_transaction_events
+    silver_table: iceberg.silver.lifehub_finance_daily
+    consumers: [monthly_review, budget_context, stress_signal]
+    pii: true
+    commit_policy: never commit bank exports, account numbers, merchant strings or transaction memos
+    onboarding_contract:
+      required_fields: [posted_date, category, amount_bucket, currency, account_bucket, imported_at]
+      event_time_field: posted_date
+      idempotency_key: [posted_date, category, amount_bucket, account_bucket]
+
+  communications_metadata:
+    tier: tier_3_sensitive_life
+    domain: communications
+    source_type: local_mail_message_or_call_export
+    privacy_class: private_communications_summary
+    raw_policy: local_raw_only
+    local_policy: summarized_landing_only
+    producer: planned-lifehub-communications-import
+    landing_path: s3a://iceberg/lifehub/landing/communications_metadata/dt={dt}/events.jsonl
+    bronze_table: iceberg.bronze.lifehub_communications_metadata_events
+    silver_table: iceberg.silver.lifehub_communications_daily
+    consumers: [focus_capacity, social_load, daily_context_profile]
+    pii: true
+    commit_policy: no message bodies, subjects, phone numbers, emails, chat ids or contact names in landing
+    onboarding_contract:
+      required_fields: [occurred_at, channel, direction, contact_bucket, interaction_count, imported_at]
+      event_time_field: occurred_at
+      idempotency_key: [occurred_at, channel, contact_bucket]
+
+  browser_and_app_usage:
+    tier: tier_2_personal_context
+    domain: digital_activity
+    source_type: local_browser_or_screen_time_export
+    privacy_class: private_behavior_summary
+    raw_policy: local_raw_only
+    local_policy: summarized_landing_only
+    producer: planned-lifehub-digital-activity-import
+    landing_path: s3a://iceberg/lifehub/landing/browser_and_app_usage/dt={dt}/events.jsonl
+    bronze_table: iceberg.bronze.lifehub_browser_app_usage_events
+    silver_table: iceberg.silver.lifehub_digital_activity_daily
+    consumers: [focus_capacity, habit_review, daily_context_profile]
+    pii: true
+    commit_policy: never commit URLs, titles, queries or raw browsing history; land domain categories and duration buckets only
+    onboarding_contract:
+      required_fields: [activity_date, category, duration_minutes, device_bucket, imported_at]
+      event_time_field: activity_date
+      idempotency_key: [activity_date, category, device_bucket]
+
+  tasks_and_projects:
+    tier: tier_2_personal_context
+    domain: productivity
+    source_type: local_task_export
+    privacy_class: private_behavior_summary
+    raw_policy: local_raw_only
+    local_policy: summarized_landing_only
+    producer: planned-lifehub-task-import
+    landing_path: s3a://iceberg/lifehub/landing/tasks_and_projects/dt={dt}/events.jsonl
+    bronze_table: iceberg.bronze.lifehub_task_project_events
+    silver_table: iceberg.silver.lifehub_task_projects
+    consumers: [weekly_review, goal_progress, daily_context_profile]
+    pii: true
+    commit_policy: keep raw task titles, descriptions and client names local; land status, project bucket and effort estimates only
+    onboarding_contract:
+      required_fields: [updated_at, project_bucket, status, priority_bucket, effort_bucket, imported_at]
+      event_time_field: updated_at
+      idempotency_key: [updated_at, project_bucket, status]
+
+  identity_documents:
+    tier: tier_4_private_core
+    domain: identity
+    source_type: local_document_index
+    privacy_class: private_identity_document
+    raw_policy: no_shared_bronze_raw
+    local_policy: explicit_opt_in_pointer_only
+    producer: planned-lifehub-document-index
+    landing_path: s3a://iceberg/lifehub/landing/identity_documents/dt={dt}/events.jsonl
+    bronze_table: iceberg.bronze.lifehub_identity_document_events
+    silver_table: iceberg.silver.lifehub_identity_document_index
+    consumers: [expiry_reminders, private_admin]
+    pii: true
+    commit_policy: never commit scans, document numbers, legal text or irreversible identifiers; store local pointers and expiry buckets only
+    onboarding_contract:
+      required_fields: [document_bucket, status, expiry_month, reminder_date, local_pointer_id, indexed_at]
+      event_time_field: indexed_at
+      idempotency_key: [document_bucket, local_pointer_id]
+
+  secrets_inventory:
+    tier: tier_4_private_core
+    domain: security
+    source_type: local_secret_manager_index
+    privacy_class: secret_credential
+    raw_policy: no_shared_bronze_raw
+    local_policy: explicit_opt_in_pointer_only
+    producer: planned-lifehub-secret-index
+    landing_path: s3a://iceberg/lifehub/landing/secrets_inventory/dt={dt}/events.jsonl
+    bronze_table: iceberg.bronze.lifehub_secret_inventory_events
+    silver_table: iceberg.silver.lifehub_secret_inventory
+    consumers: [rotation_reminders, security_hygiene]
+    pii: true
+    commit_policy: never commit secret values, token names, URLs, usernames or vault exports; land rotation metadata only
+    onboarding_contract:
+      required_fields: [secret_bucket, rotation_due_month, age_bucket, vault_pointer_id, indexed_at]
+      event_time_field: indexed_at
+      idempotency_key: [secret_bucket, vault_pointer_id]
 
 new_source_template:
   steps:

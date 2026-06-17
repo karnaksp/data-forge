@@ -6,56 +6,312 @@ domains:
   - sports
   - wellbeing
   - outdoor_readiness
+  - schedule
+  - location
+  - health
+  - finance
+  - communications
+  - digital_activity
+  - productivity
+  - identity
+  - security
+
+source_architecture:
+  source_tiers:
+    tier_1_foundation:
+      contract: public, synthetic, derived, or low-risk summary sources are allowed in committed fixtures
+      raw_policy: public_fixture_ok
+      landing_policy: privacy-safe event envelopes
+    tier_2_personal_context:
+      contract: personal behavior and planning data must be minimized before landing
+      raw_policy: local_raw_only
+      landing_policy: summaries, buckets, and redacted metrics only
+    tier_3_sensitive_life:
+      contract: health, finance, location, and communications data require source-specific redaction
+      raw_policy: local_raw_only
+      landing_policy: no account numbers, message content, private coordinates, exact identities, or raw device payloads
+    tier_4_private_core:
+      contract: secrets, identity/legal documents, and irreversible identifiers are pointer-only
+      raw_policy: no_shared_bronze_raw
+      landing_policy: local pointer ids, due dates, and status buckets only
+  privacy_classes:
+    public_context:
+      contains_personal_data: false
+      allowed_payload: public API facts, synthetic examples, open-source or market context
+    derived_context:
+      contains_personal_data: false
+      allowed_payload: daily/weekly aggregate scores and recommendation context
+    private_behavior_summary:
+      contains_personal_data: true
+      allowed_payload: activity, task, habit, feedback, and preference summaries without raw notes
+    private_location_summary:
+      contains_personal_data: true
+      allowed_payload: coarse place buckets, route statistics, commute metrics, and precision buckets
+    private_health_summary:
+      contains_personal_data: true
+      allowed_payload: daily health, sleep, recovery, and biometric summaries
+    private_finance_summary:
+      contains_personal_data: true
+      allowed_payload: category totals, amount buckets, balance buckets, and account buckets
+    private_communications_summary:
+      contains_personal_data: true
+      allowed_payload: counts and channel/contact buckets without message bodies or identifiers
+    private_identity_document:
+      contains_personal_data: true
+      allowed_payload: document bucket, lifecycle status, expiry month, reminder date, and local pointer id
+    secret_credential:
+      contains_personal_data: true
+      allowed_payload: rotation metadata only; secret values and stable identifiers are forbidden
+  universal_event_envelope:
+    required_fields:
+      - lake_version
+      - event_id
+      - source_name
+      - source_tier
+      - source_type
+      - event_type
+      - event_time
+      - ingested_at
+      - privacy_class
+      - consent_scope
+      - subject_id
+      - schema_version
+      - idempotency_key
+      - provenance
+      - raw_policy
+      - local_policy
+      - payload_summary
+      - metrics
+      - tags
+      - quality_flags
+      - payload
+    field_contract:
+      lake_version: stable envelope version such as lifehub.lake.v1
+      event_id: deterministic hash for de-duplication across reruns
+      source_name: must match config/lifehub/source_registry.yaml
+      source_tier: one of tier_1_foundation, tier_2_personal_context, tier_3_sensitive_life, tier_4_private_core
+      event_time: source event time or aggregate date, never ingestion time unless no better source time exists
+      privacy_class: one of the registry privacy classes
+      consent_scope: local_personal_use by default; narrower scopes may be source-specific
+      subject_id: local pseudonymous subject id, default self, never email/phone/chat id
+      idempotency_key: deterministic source key built from non-secret fields
+      provenance: connector, fixture, export path bucket, and transformation version without raw secrets
+      payload_summary: compact redacted facts safe for evidence and quick source maps
+      metrics: numeric measures extracted from payload without raw private values
+      tags: controlled labels for domain, source family, and product surface routing
+      quality_flags: validation, freshness, redaction, and completeness flags
+      payload: privacy-safe source payload matching the source onboarding contract
+  registry_alignment:
+    required_source_names:
+      - weather_forecast
+      - activity_diary
+      - activity_files
+      - decision_feedback
+      - context_signals
+      - daily_context_profile
+      - sleep_quality
+      - custom_life_events
+      - calendar_events
+      - moto_learning_log
+      - training_sessions
+      - habit_goals
+      - personal_notes_summary
+      - trade_journal_summary
+      - market_watchlist_snapshot
+      - github_project_activity
+      - learning_activity
+      - finance_event_calendar
+      - health_summary
+      - location_area_summary
+      - data_source_runs
+      - location_visits
+      - health_metrics
+      - finance_transactions
+      - communications_metadata
+      - browser_and_app_usage
+      - tasks_and_projects
+      - identity_documents
+      - secrets_inventory
+    active_fixture_sources:
+      - weather_forecast
+      - activity_diary
+      - activity_files
+      - decision_feedback
+      - context_signals
+      - daily_context_profile
+      - sleep_quality
+      - custom_life_events
+      - calendar_events
+      - moto_learning_log
+      - personal_notes_summary
+      - trade_journal_summary
+      - data_source_runs
+    planned_connector_sources:
+      - training_sessions
+      - habit_goals
+      - market_watchlist_snapshot
+      - github_project_activity
+      - learning_activity
+      - finance_event_calendar
+      - health_summary
+      - location_area_summary
+      - location_visits
+      - health_metrics
+      - finance_transactions
+      - communications_metadata
+      - browser_and_app_usage
+      - tasks_and_projects
+      - identity_documents
+      - secrets_inventory
 
 sources:
   open_meteo_forecast:
     type: public_api
+    tier: tier_1_foundation
+    privacy_class: public_context
     freshness_slo_minutes: 180
     contains_personal_data: false
+    storage_policy: public_fixture_ok
   overpass_spots:
     type: public_api
+    tier: tier_1_foundation
+    privacy_class: public_context
     freshness_slo_minutes: 10080
     contains_personal_data: false
+    storage_policy: public_fixture_ok
   telegram_diary:
     type: manual_event_log
+    tier: tier_2_personal_context
+    privacy_class: private_behavior_summary
     freshness_slo_minutes: 1440
     contains_personal_data: true
     storage_policy: local_only
   github_repo_activity:
     type: public_api
+    tier: tier_1_foundation
+    privacy_class: public_context
     freshness_slo_minutes: 1440
     contains_personal_data: false
     storage_policy: compact_context_events_only
   alpaca_market_snapshot:
     type: market_data_api
+    tier: tier_1_foundation
+    privacy_class: public_context
     freshness_slo_minutes: 240
     contains_personal_data: false
     storage_policy: compact_context_events_only
   lifehub_preferences:
     type: local_config
+    tier: tier_1_foundation
+    privacy_class: derived_context
     freshness_slo_minutes: 10080
     contains_personal_data: false
     storage_policy: privacy_safe_weekly_targets
   weekly_review:
     type: derived_report
+    tier: tier_1_foundation
+    privacy_class: derived_context
     freshness_slo_minutes: 10080
     contains_personal_data: false
     storage_policy: aggregate_metrics_only
   daily_context_profile:
     type: derived_decision_profile
+    tier: tier_1_foundation
+    privacy_class: derived_context
     freshness_slo_minutes: 180
     contains_personal_data: false
     storage_policy: aggregate_metrics_only
   lifehub_lakehouse:
     type: medallion_lakehouse
+    tier: tier_1_foundation
+    privacy_class: derived_context
     freshness_slo_minutes: 1440
     contains_personal_data: mixed
     storage_policy: privacy_safe_event_envelopes
   activity_files:
     type: local_file_import
+    tier: tier_2_personal_context
+    privacy_class: private_location_summary
     freshness_slo_minutes: 1440
     contains_personal_data: true
     storage_policy: public_fixtures_only_real_files_local
+  sleep_quality:
+    type: local_json_event
+    tier: tier_2_personal_context
+    privacy_class: private_health_summary
+    freshness_slo_minutes: 1440
+    contains_personal_data: true
+    storage_policy: raw_sleep_exports_local_summaries_only
+  custom_life_events:
+    type: local_json_event
+    tier: tier_2_personal_context
+    privacy_class: private_behavior_summary
+    freshness_slo_minutes: 1440
+    contains_personal_data: true
+    storage_policy: redacted_local_summary_events_only
+  calendar_events:
+    type: local_calendar_export
+    tier: tier_2_personal_context
+    privacy_class: private_behavior_summary
+    freshness_slo_minutes: 1440
+    contains_personal_data: true
+    storage_policy: raw_calendar_exports_local_busy_windows_only
+  location_visits:
+    type: local_location_history
+    tier: tier_3_sensitive_life
+    privacy_class: private_location_summary
+    freshness_slo_minutes: 1440
+    contains_personal_data: true
+    storage_policy: raw_gps_local_coarse_place_buckets_only
+  health_metrics:
+    type: wearable_or_health_export
+    tier: tier_3_sensitive_life
+    privacy_class: private_health_summary
+    freshness_slo_minutes: 1440
+    contains_personal_data: true
+    storage_policy: raw_health_exports_local_daily_summaries_only
+  finance_transactions:
+    type: local_bank_or_budget_export
+    tier: tier_3_sensitive_life
+    privacy_class: private_finance_summary
+    freshness_slo_minutes: 1440
+    contains_personal_data: true
+    storage_policy: raw_bank_exports_local_category_buckets_only
+  communications_metadata:
+    type: local_mail_message_or_call_export
+    tier: tier_3_sensitive_life
+    privacy_class: private_communications_summary
+    freshness_slo_minutes: 1440
+    contains_personal_data: true
+    storage_policy: metadata_counts_only_no_content_or_identifiers
+  browser_and_app_usage:
+    type: local_browser_or_screen_time_export
+    tier: tier_2_personal_context
+    privacy_class: private_behavior_summary
+    freshness_slo_minutes: 1440
+    contains_personal_data: true
+    storage_policy: category_duration_buckets_no_urls_or_queries
+  tasks_and_projects:
+    type: local_task_export
+    tier: tier_2_personal_context
+    privacy_class: private_behavior_summary
+    freshness_slo_minutes: 1440
+    contains_personal_data: true
+    storage_policy: status_and_effort_buckets_no_titles_or_client_names
+  identity_documents:
+    type: local_document_index
+    tier: tier_4_private_core
+    privacy_class: private_identity_document
+    freshness_slo_minutes: 10080
+    contains_personal_data: true
+    storage_policy: pointer_only_no_shared_bronze_raw
+  secrets_inventory:
+    type: local_secret_manager_index
+    tier: tier_4_private_core
+    privacy_class: secret_credential
+    freshness_slo_minutes: 10080
+    contains_personal_data: true
+    storage_policy: rotation_metadata_only_no_secret_values
 
 tables:
   postgres.life_spots:
@@ -325,10 +581,21 @@ tables:
       - json_payload
       - landing_file
       - loaded_at
+    target_envelope_fields:
+      - source_tier
+      - source_type
+      - consent_scope
+      - subject_id
+      - schema_version
+      - idempotency_key
+      - provenance
+      - raw_policy
+      - local_policy
     checks:
       - source_name_not_empty
       - no_telegram_token
       - no_raw_diary_notes
+      - no_secret_credential_payloads
 
   iceberg.silver.lifehub_events:
     grain: one validated LifeHub event envelope with non-null source, type and event time
@@ -340,9 +607,15 @@ tables:
       - event_time
       - privacy_class
       - json_payload
+    target_envelope_fields:
+      - source_tier
+      - consent_scope
+      - schema_version
+      - idempotency_key
     checks:
       - event_time_not_null
       - source_name_not_empty
+      - tier_4_pointer_only
 
   iceberg.gold.lifehub_decision_events:
     grain: one decision-oriented derived LifeHub event
@@ -355,6 +628,137 @@ tables:
       - json_payload
     checks:
       - decision_events_only
+
+  lake.landing.lifehub.calendar_events:
+    grain: one redacted calendar commitment or busy-window event
+    primary_key: [calendar_bucket, event_time, duration_minutes]
+    purpose: planning and focus-capacity context without raw calendar text
+    required_columns:
+      - event_time
+      - duration_minutes
+      - calendar_bucket
+      - commitment_type
+      - imported_at
+    checks:
+      - no_event_titles_descriptions_attendees_or_locations
+
+  lake.landing.lifehub.location_visits:
+    grain: one coarse location visit or movement summary
+    primary_key: [place_bucket, occurred_at, dwell_minutes]
+    purpose: routine and commute context without private coordinates
+    required_columns:
+      - occurred_at
+      - place_bucket
+      - dwell_minutes
+      - movement_mode
+      - precision_bucket
+      - imported_at
+    checks:
+      - no_home_work_addresses
+      - no_exact_private_coordinates
+
+  lake.landing.lifehub.health_metrics:
+    grain: one daily or session-level health metric summary
+    primary_key: [metric_date, metric_name, source_device_class]
+    purpose: recovery and training context without raw wearable exports
+    required_columns:
+      - metric_date
+      - metric_name
+      - metric_value
+      - unit
+      - source_device_class
+      - imported_at
+    checks:
+      - no_raw_health_export
+      - no_device_identifier
+
+  lake.landing.lifehub.finance_transactions:
+    grain: one category-level financial event or daily aggregate
+    primary_key: [posted_date, category, amount_bucket, account_bucket]
+    purpose: budget and stress context without transaction-level identifiers
+    required_columns:
+      - posted_date
+      - category
+      - amount_bucket
+      - currency
+      - account_bucket
+      - imported_at
+    checks:
+      - no_account_numbers
+      - no_merchant_strings
+      - no_transaction_memos
+
+  lake.landing.lifehub.communications_metadata:
+    grain: one communication count bucket by channel and contact bucket
+    primary_key: [occurred_at, channel, contact_bucket]
+    purpose: focus and social-load context without message content
+    required_columns:
+      - occurred_at
+      - channel
+      - direction
+      - contact_bucket
+      - interaction_count
+      - imported_at
+    checks:
+      - no_message_bodies_subjects_phone_numbers_or_emails
+
+  lake.landing.lifehub.browser_and_app_usage:
+    grain: one category-duration bucket per day and device bucket
+    primary_key: [activity_date, category, device_bucket]
+    purpose: focus and habit context without browsing history
+    required_columns:
+      - activity_date
+      - category
+      - duration_minutes
+      - device_bucket
+      - imported_at
+    checks:
+      - no_urls_titles_queries_or_raw_history
+
+  lake.landing.lifehub.tasks_and_projects:
+    grain: one project status or effort summary
+    primary_key: [updated_at, project_bucket, status]
+    purpose: goal-progress context without raw task text
+    required_columns:
+      - updated_at
+      - project_bucket
+      - status
+      - priority_bucket
+      - effort_bucket
+      - imported_at
+    checks:
+      - no_task_titles_descriptions_or_client_names
+
+  lake.landing.lifehub.identity_documents:
+    grain: one pointer-only identity or official document lifecycle event
+    primary_key: [document_bucket, local_pointer_id]
+    purpose: private admin reminders without document content
+    required_columns:
+      - document_bucket
+      - status
+      - expiry_month
+      - reminder_date
+      - local_pointer_id
+      - indexed_at
+    checks:
+      - no_document_numbers
+      - no_scans_or_legal_text
+      - pointer_only_no_shared_bronze_raw
+
+  lake.landing.lifehub.secrets_inventory:
+    grain: one pointer-only credential rotation metadata event
+    primary_key: [secret_bucket, vault_pointer_id]
+    purpose: security hygiene reminders without secret material
+    required_columns:
+      - secret_bucket
+      - rotation_due_month
+      - age_bucket
+      - vault_pointer_id
+      - indexed_at
+    checks:
+      - no_secret_values
+      - no_token_names_or_usernames
+      - pointer_only_no_shared_bronze_raw
 
   lake.landing.lifehub.activity_files:
     grain: one privacy-safe activity file summary envelope
@@ -419,3 +823,16 @@ public_evidence_policy:
     - raw_diary_notes
     - pain_text
     - precise_private_addresses
+    - raw_gps_history
+    - raw_health_exports
+    - bank_account_numbers
+    - merchant_strings
+    - transaction_memos
+    - message_bodies
+    - email_addresses
+    - phone_numbers
+    - browser_urls
+    - search_queries
+    - task_titles
+    - document_numbers
+    - secret_values

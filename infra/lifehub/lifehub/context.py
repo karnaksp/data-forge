@@ -60,6 +60,11 @@ def build_daily_context_profile(
         readiness_state,
         recovery,
     )
+    confidence, gaps = profile_confidence_and_gaps(summary, metrics, context_signals, recovery, generated_at)
+    if gaps:
+        context_summary = f"{context_summary}; confidence={confidence}/100; data_gaps={', '.join(gaps)}"
+    else:
+        context_summary = f"{context_summary}; confidence={confidence}/100; data_gaps=none"
 
     return DailyContextProfile(
         profile_date=profile_date,
@@ -138,6 +143,7 @@ def summarize_daily_context(
 
 
 def render_daily_context_profile(profile: DailyContextProfile) -> str:
+    confidence, gaps = extract_confidence_and_gaps(profile.context_summary)
     return "\n".join(
         [
             "LifeHub daily context profile",
@@ -159,6 +165,95 @@ def render_daily_context_profile(profile: DailyContextProfile) -> str:
                 f"{profile.signal_count_7d} active, top {profile.highest_signal_domain} "
                 f"urgency {profile.highest_signal_urgency}/10"
             ),
+            f"Profile confidence: {confidence}/100",
+            f"Data gaps: {', '.join(gaps) if gaps else 'none'}",
             f"Summary: {profile.context_summary}",
         ]
     )
+
+
+def profile_confidence_and_gaps(
+    week_summary: dict,
+    decision_metrics: dict,
+    signals: list[ContextSignal],
+    recovery_summary: dict,
+    generated_at: str,
+) -> tuple[int, list[str]]:
+    gaps: list[str] = []
+    confidence = 100
+    now = parse_dt(generated_at) or datetime.now(timezone.utc)
+
+    if int(week_summary.get("sessions") or 0) <= 0:
+        gaps.append("activity_diary_empty")
+        confidence -= 25
+    if not has_fresh_timestamp(week_summary, now, 10):
+        gaps.append("activity_diary_freshness_unknown")
+        confidence -= 10
+
+    if not decision_metrics:
+        gaps.append("decision_feedback_missing")
+        confidence -= 15
+    elif not has_fresh_timestamp(decision_metrics, now, 14):
+        gaps.append("decision_feedback_freshness_unknown")
+        confidence -= 8
+
+    if not signals:
+        gaps.append("context_signals_missing")
+        confidence -= 10
+    elif stale_signal_count(signals, now, 7) == len(signals):
+        gaps.append("context_signals_stale")
+        confidence -= 10
+
+    if not recovery_summary:
+        gaps.append("sleep_recovery_missing")
+        confidence -= 10
+    elif recovery_summary.get("latest_woke_at") and is_older_than(str(recovery_summary["latest_woke_at"]), now, 3):
+        gaps.append("sleep_recovery_stale")
+        confidence -= 10
+
+    return max(0, min(100, confidence)), gaps
+
+
+def has_fresh_timestamp(payload: dict, now: datetime, max_age_days: int) -> bool:
+    for key in ["generated_at", "updated_at", "logged_at", "latest_logged_at", "as_of"]:
+        value = payload.get(key)
+        if value and not is_older_than(str(value), now, max_age_days):
+            return True
+    return False
+
+
+def stale_signal_count(signals: list[ContextSignal], now: datetime, max_age_days: int) -> int:
+    return sum(1 for signal in signals if is_older_than(signal.occurred_at, now, max_age_days))
+
+
+def is_older_than(value: str, now: datetime, max_age_days: int) -> bool:
+    parsed = parse_dt(value)
+    if not parsed:
+        return True
+    return (now - parsed).total_seconds() > max_age_days * 86400
+
+
+def parse_dt(value: str) -> datetime | None:
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        return parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
+def extract_confidence_and_gaps(summary: str) -> tuple[int, list[str]]:
+    confidence = 0
+    gaps: list[str] = []
+    for part in [item.strip() for item in summary.split(";")]:
+        if part.startswith("confidence="):
+            raw = part.split("=", 1)[1].split("/", 1)[0]
+            try:
+                confidence = int(raw)
+            except ValueError:
+                confidence = 0
+        elif part.startswith("data_gaps="):
+            raw_gaps = part.split("=", 1)[1]
+            gaps = [] if raw_gaps == "none" else [item.strip() for item in raw_gaps.split(",") if item.strip()]
+    return confidence, gaps

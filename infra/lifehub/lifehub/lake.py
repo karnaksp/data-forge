@@ -7,6 +7,7 @@ added without changing the downstream Bronze ingestion job.
 from __future__ import annotations
 
 import json
+import hashlib
 from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
@@ -59,14 +60,41 @@ def lake_envelope(
     event_time: str,
     payload: dict,
     privacy_class: str = "derived",
+    source_tier: str = "",
+    source_type: str = "",
+    raw_policy: str = "",
+    local_policy: str = "",
+    payload_summary: dict | None = None,
+    metrics: dict | None = None,
+    tags: list[str] | None = None,
+    quality_flags: list[str] | None = None,
+    provenance: dict | None = None,
+    idempotency_key: str = "",
 ) -> dict:
+    ingested_at = datetime.now(timezone.utc).isoformat()
+    stable_key = idempotency_key or f"{source_name}:{event_type}:{event_time}:{json.dumps(payload, sort_keys=True)}"
+    event_id = hashlib.sha256(stable_key.encode("utf-8")).hexdigest()[:32]
     return {
         "lake_version": LAKE_VERSION,
+        "event_id": event_id,
         "source_name": source_name,
+        "source_tier": source_tier,
+        "source_type": source_type,
         "event_type": event_type,
         "event_time": event_time,
-        "ingested_at": datetime.now(timezone.utc).isoformat(),
+        "ingested_at": ingested_at,
         "privacy_class": privacy_class,
+        "consent_scope": "local_personal_use",
+        "subject_id": "self",
+        "schema_version": "1",
+        "idempotency_key": stable_key,
+        "provenance": provenance or {},
+        "raw_policy": raw_policy,
+        "local_policy": local_policy,
+        "payload_summary": payload_summary or {},
+        "metrics": metrics or {},
+        "tags": tags or [],
+        "quality_flags": quality_flags or [],
         "payload": payload,
     }
 

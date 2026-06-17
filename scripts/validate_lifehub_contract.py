@@ -397,6 +397,8 @@ def validate_docs() -> list[str]:
         "lifehub-sleep-fixture",
         "lifehub-custom-source-fixture",
         "lifehub-source-onboard-demo",
+        "lifehub-source-map-demo",
+        "lifehub-full-source-demo",
         "lifehub-lakehouse-runtime-smoke",
     ]:
         if target not in makefile:

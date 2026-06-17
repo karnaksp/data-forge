@@ -1,0 +1,24 @@
+{
+  "sessions": [
+    {
+      "occurred_at": "2026-06-15T18:00:00+00:00",
+      "topic": "cornering",
+      "course": "Urban Riding",
+      "lesson": "Slow-speed balance",
+      "practice_minutes": 45,
+      "confidence_score": 72,
+      "quiz_score": 0.84,
+      "completed": true
+    },
+    {
+      "occurred_at": "2026-06-16T18:30:00+00:00",
+      "topic": "braking",
+      "course": "Urban Riding",
+      "lesson": "Emergency stops",
+      "practice_minutes": 35,
+      "confidence_score": 78,
+      "quiz_score": 0.9,
+      "completed": true
+    }
+  ]
+}
